@@ -18,7 +18,8 @@ depot_y = 50 # Depot y-coordinate
 
 class Instance():
     """A realized set of node locations and demands and the resulting routing characteristics."""
-    def __init__(self, xlocs, ylocs, demands, solve_TSP=False):
+
+    def __init__(self, xlocs, ylocs, demands, solve_TSP=True):
 
         self.size = len(demands) - 1
         self.demands = demands
@@ -28,7 +29,8 @@ class Instance():
         self.optimal_routes = 'None'
         self.tour = 'None'
         if solve_TSP:
-            self.tour = self.solve_TSP()
+            # self.tour = self.solve_TSP()
+            self.tour = self.nearest_neighbor()
 
     def calc_distance_matrix(self):
         """Returns a matrix with pairwise node distances"""
@@ -54,6 +56,24 @@ class Instance():
         """Returns the number of vehicles needed to visit all nodes given a fixed route size"""
         assert self.size % route_size == 0, "Number of customers must be evenly divisible by the route size."
         return int(self.size / route_size)
+
+    def nearest_neighbor(self):
+
+        # Tracker for whether a customer has been visited
+        isVisited = dict([(c, False) for c in range(1, self.size + 1)])
+
+        # Begin tour at depot
+        current = 0
+        tour = [current]
+
+        while not all(isVisited[i] == True for i in isVisited):
+            # Find current customer's nearest neighbor (nn) and update tour
+            candidate_distances = dict([(c, self.distances[current, c]) for c in isVisited if isVisited[c] == False])
+            nn = min(candidate_distances, key=candidate_distances.get)
+            tour.append(nn)
+            isVisited[nn] = True
+
+        return tour
 
     def solve_TSP(self):
         """Defines and returns the TSP tour through all node locations"""
@@ -419,7 +439,7 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
 def set_best_tours(demand_instances, primary_routes, extended_routes, capacity, route_size, overlap_size):
     """Updates the tour of all instances to the sequence that minimizes the average cost of the routes over all demand instances.
     Assumes all instances in list demand_instances have identical customer locations."""
-    print(primary_routes)
+
     # Get any customer instance
     inst = demand_instances[0]
     # Set current tour and cumulative cost over all demand instances as best so far
