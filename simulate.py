@@ -106,10 +106,8 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 
                     # Solve reoptimization
                     new_rt = time.time()
-                    cost, trips = solve_SDVRP(inst, capacity)
-                    new_rows = pd.DataFrame([[scenario, inst.size, 'reoptimization', 'total cost', cost],
-                                             [scenario, inst.size, 'reoptimization', 'trip count', trips]],
-                                            columns=['Scenario', 'Number of Customers', 'Routing Strategy', 'Metric', 'Value'])
+                    segments = solve_SDVRP(inst, capacity)
+                    new_rows = create_report(inst, scenario, 'reoptimization', segments)
                     sim_results = sim_results.append(new_rows, ignore_index = True)
                     rt += time.time() - new_rt
 
@@ -146,7 +144,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 if __name__ == "__main__":
 
     # Baseline simulation: demand uniformly distributed in [0,8]
-    baseline_sim = simulate(scenario = 'baseline', problem_sizes = [40], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 500)
+    baseline_sim = simulate(scenario = 'baseline', problem_sizes = [5], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 500)
 
     # Combine all simulation results into single dataframe
     combined = pd.concat([baseline_sim])
