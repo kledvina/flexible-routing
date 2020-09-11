@@ -145,7 +145,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 if __name__ == "__main__":
 
     # Baseline simulation: demand uniformly distributed in [0,8]
-    baseline_sim = simulate(scenario = 'baseline', problem_sizes = [5, 10, 20], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 500)
+    baseline_sim = simulate(scenario = 'baseline', problem_sizes = [80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 500)
 
     # Combine all simulation results into single dataframe
     combined = pd.concat([baseline_sim])
