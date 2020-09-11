@@ -38,6 +38,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 
     # Print simulation parameters
     print('--- SIMULATION PARAMETERS ---')
+    print('Start time:', timestamp)
     print('Scenario Name:', scenario)
     print('Problem sizes:', problem_sizes)
     print('Vehicle capacity:', capacity)
@@ -123,19 +124,19 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
             st += time.time() - new_st
 
             end = time.time()
-            print('Customer instance {} complete. Time elapsed: {:.2f} s'.format(i + 1, end - start))
+            print('Customer instance {} complete. Time elapsed: {:.2f} min'.format(i + 1, (end-start)/60))
 
         print('Problems of size {} complete'.format(num_cust))
 
     print('Simulation complete.')
     print()
     print('--- RUNTIME BREAKDOWN ---')
-    print('Setup: {:.2f} s'.format(pt))
-    print('Dedicated: {:.2f} s'.format(dt))
-    print('Overlapped: {:.2f} s'.format(ot))
-    print('Full Flex.: {:.2f} s'.format(ft))
-    print('Reoptimization: {:.2f} s'.format(rt))
-    print('Saving: {:.2f} s'.format(st))
+    print('Setup: {:.2f} min'.format(pt/60))
+    print('Dedicated: {:.2f} min'.format(dt/60))
+    print('Overlapped: {:.2f} min'.format(ot/60))
+    print('Full Flex.: {:.2f} min'.format(ft/60))
+    print('Reoptimization: {:.2f} min'.format(rt/60))
+    print('Saving: {:.2f} min'.format(st/60))
 
     return sim_results
 
@@ -145,7 +146,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 if __name__ == "__main__":
 
     # Baseline simulation: demand uniformly distributed in [0,8]
-    baseline_sim = simulate(scenario = 'baseline', problem_sizes = [80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 500)
+    baseline_sim = simulate(scenario = 'baseline', problem_sizes = [40], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 500)
 
     # Combine all simulation results into single dataframe
     combined = pd.concat([baseline_sim])

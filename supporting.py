@@ -30,7 +30,8 @@ class Instance():
         self.tour = 'None'
         if solve_TSP:
             # self.tour = self.solve_TSP()
-            self.tour = self.nearest_neighbor()
+            # self.tour = self.TSP_heuristic()
+            self.tour = self.solve_TSP()
 
     def calc_distance_matrix(self):
         """Returns a matrix with pairwise node distances"""
@@ -57,33 +58,61 @@ class Instance():
         assert self.size % route_size == 0, "Number of customers must be evenly divisible by the route size."
         return int(self.size / route_size)
 
-    def nearest_neighbor(self):
-
-        # Tracker for whether a customer has been visited
-        isVisited = dict([(c, False) for c in range(1, self.size + 1)])
-
-        # Begin tour at depot
-        current = 0
-        tour = [current]
-
-        while not all(isVisited[i] == True for i in isVisited):
-            # Find current customer's nearest neighbor (nn) and update tour
-            candidate_distances = dict([(c, self.distances[current, c]) for c in isVisited if isVisited[c] == False])
-            nn = min(candidate_distances, key=candidate_distances.get)
-            tour.append(nn)
-            isVisited[nn] = True
-
-        return tour
-
-    def solve_TSP(self):
-        """Defines and returns the TSP tour through all node locations"""
-        solver = TSPSolver.from_data(self.xlocs, self.ylocs, 'EUC_2D')
-        solution = solver.solve()
-        self.tour = list(solution.tour)
-        return self.tour
-
     def save_optimal_routes(self, route_list):
         self.optimal_routes = route_list
+
+    def solve_TSP(self):
+
+        def create_data_model():
+            data = {}
+            data['distance_matrix'] = self.distances
+            data['num_vehicles'] = 1
+            data['depot'] = 0
+            return data
+
+        def get_tour(manager, routing, solution):
+            index = routing.Start(0)
+            plan_output = ''
+            while not routing.IsEnd(index):
+                plan_output += '{},'.format(manager.IndexToNode(index))
+                previous_index = index
+                index = solution.Value(routing.NextVar(index))
+            plan_output += '{}'.format(manager.IndexToNode(index))
+            as_list = plan_output.split(',')
+            return [int(i) for i in as_list][:-1]  # excludes return to depot in tour
+
+        # --- RUN PROGRAM ---
+
+        # Instantiate the data problem.
+        data = create_data_model()
+
+        # Create the routing index manager.
+        manager = pywrapcp.RoutingIndexManager(len(data['distance_matrix']),
+                                               data['num_vehicles'], data['depot'])
+
+        # Create Routing Model.
+        routing = pywrapcp.RoutingModel(manager)
+
+        def distance_callback(from_index, to_index):
+            """Returns the distance between the two nodes."""
+            # Convert from routing variable Index to distance matrix NodeIndex.
+            from_node = manager.IndexToNode(from_index)
+            to_node = manager.IndexToNode(to_index)
+            return data['distance_matrix'][from_node][to_node]
+
+        transit_callback_index = routing.RegisterTransitCallback(distance_callback)
+
+        # Define cost of each arc.
+        routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+
+        # Setting first solution heuristic.
+        search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+        search_parameters.first_solution_strategy = (
+            routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+
+        # Solve the problem.
+        solution = routing.SolveWithParameters(search_parameters)
+        return get_tour(manager, routing, solution)
 
 
 #---------------------------------------------------------------------------------
@@ -111,7 +140,7 @@ def get_circular_cost(inst, segment):
 #---------------------------------------------------------------------------------
 
 def get_radial_cost(inst, segment):
-    """Returns the distance Assumes vehicle travels to/from the depot at segment endpoints."""
+    """Returns the total distance of trips to/from the depot at segment endpoints."""
     if len(segment) == 0:
         return 0
     else:
@@ -205,26 +234,33 @@ def solve_VRP(inst, capacity):
     nonempty_routes = [route for route in all_routes if not all(i == 0 for i in route)]
 
     # Remove the depot from the optimal routes
-    # parsed_routes = [route[1:-1] for route in nonempty_routes]
-    # return parsed_routes
-
-    return solution.ObjectiveValue(), len(nonempty_routes)  # returns (optimal cost, number of trips)
+    parsed_routes = [route[1:-1] for route in nonempty_routes]
+    return parsed_routes
 
 
 #---------------------------------------------------------------------------------
 
 def solve_SDVRP(inst, capacity):
     """Creates equivalent demand/location instance with unit demand and solves the VRP with splittable demands"""
+    # Create equivalent instance with unit demand customers
     split_xlocs = [[0]] + [[inst.xlocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
     split_ylocs = [[0]] + [[inst.ylocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
     split_demands = [[0]] + [[1] * inst.demands[i] for i in range(1, len(inst.demands))]
-
     split_xlocs = [v for sublist in split_xlocs for v in sublist]
     split_ylocs = [v for sublist in split_ylocs for v in sublist]
     split_demands = [v for sublist in split_demands for v in sublist]
-    split_inst = Instance(split_xlocs, split_ylocs, split_demands)
+    split_inst = Instance(split_xlocs, split_ylocs, split_demands, solve_TSP=False)
 
-    return solve_VRP(split_inst, capacity)
+    # Solve VRP with unit demand customers
+    vrp = solve_VRP(split_inst, capacity)
+
+    # Convert back to non-unit demand problem
+    # to get SDVRP solution for original instance
+    ids = [[0]] + [[i] * inst.demands[i] for i in range(1, len(inst.demands))]
+    ids = [v for sublist in ids for v in sublist]
+    sdvrp = [[ids[c] for c in route] for route in vrp]
+
+    return sdvrp
 
 
 #---------------------------------------------------------------------------------
