@@ -307,8 +307,6 @@ def create_full_trips(inst, route_list, capacity, demand_filled=None):
         while i < len(route_list[m]):
             cust = route_list[m][i]
             for d in range(inst.demands[cust]):
-                # print(dict([(c,vehicle_dict[c]) for c in vehicle_dict if vehicle_dict[c]!=0]))
-                # print(dict([(c,seg_dict[c]) for c in seg_dict if seg_dict[c]!=0]))
 
                 if demand_filled != None and sum(vehicle_dict.values()) == demand_filled[m]:
                     # Route's vehicle achieved its predetermined workload (if applicable)
@@ -440,7 +438,7 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
         new_ylocs = field_height * np.random.random(num_cust)  # y coordinates of all customers
 
         # Generate demands depending on scenario
-        if scenario == 'baseline':
+        if scenario in ['baseline', 'short_route']:
             new_dems = list(np.random.randint(0, 8, num_cust))  # Uniformly distributed between 0 and 8
 
         # Return new instance
@@ -451,7 +449,7 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
 
     def update_demands(inst, scenario):
         # Creates copy of instance with updated demands depending on scenario
-        if scenario == 'baseline':
+        if scenario in ['baseline','short_route']:
             new_dems = list(np.random.randint(0, 8, num_cust))  # Uniformly distributed between 0 and 8
         new_dems = list(np.append([0], new_dems))  # include depot in customer demands
         new_inst = Instance(inst.xlocs, inst.ylocs, new_dems, solve_TSP=False)

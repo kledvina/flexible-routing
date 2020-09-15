@@ -67,8 +67,8 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
             inst = row[0]  # customer instance
             primary_routes = get_primary_routes(inst, route_size)
             extended_routes = get_extended_routes(inst, route_size, overlap_size)
-            set_best_tours(row, primary_routes, extended_routes, capacity, route_size,
-                           overlap_size)  # set cost-minimizing sequence
+            # set average cost-minimizing tour
+            set_best_tours(row, primary_routes, extended_routes, capacity, route_size, overlap_size)
         pt += time.time() - new_pt
 
         # Loop through instances and find instance cost for different strategies
@@ -113,7 +113,11 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 
                 except Exception as e:
                     print('ERROR: {}'.format(e))
-                    print('WARNING: Simulation failed to complete. Returning last Instance object.')
+                    print('WARNING: Simulation failed to complete. Printing info for last Instance and returning Instance object.')
+                    print(inst.demands)
+                    print(inst.xlocs)
+                    print(inst.ylocs)
+                    print(inst.tour)
                     return inst
 
             # Save backup of data
@@ -144,10 +148,13 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 if __name__ == "__main__":
 
     # Baseline simulation: demand uniformly distributed in [0,8]
-    baseline_sim = simulate(scenario = 'baseline', problem_sizes = [5], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 500)
+    #baseline_sim = simulate(scenario = 'baseline', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 1000)
+
+    # Short route simulation: baseline but with route size of 2 and E[D] = 8
+    short_route_sim = simulate(scenario = 'short_route', problem_sizes = [4,10,20], capacity = 8, route_size = 2, overlap_size = 2, cust_sims = 10, dem_sims = 1000)
 
     # Combine all simulation results into single dataframe
-    combined = pd.concat([baseline_sim])
+    combined = pd.concat([short_route_sim])
 
     # Calculate summary statistics over instances
     means = combined.groupby(['Scenario', 'Number of Customers', 'Routing Strategy', 'Metric'])['Value'].mean()
@@ -159,7 +166,8 @@ if __name__ == "__main__":
     outfile = 'output/results_{}.xlsx'.format(timestamp)
 
     with pd.ExcelWriter(outfile) as writer:
-        baseline_sim.to_excel(writer, sheet_name = 'baseline')
+        #baseline_sim.to_excel(writer, sheet_name = 'baseline')
+        short_route_sim.to_excel(writer, sheet_name='short_route')
         means.to_excel(writer, sheet_name = 'summary_mean')
         sds.to_excel(writer, sheet_name = 'summary_sds')
         ci_low.to_excel(writer, sheet_name = 'summary_ci_low')
