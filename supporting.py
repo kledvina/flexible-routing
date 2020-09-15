@@ -258,7 +258,10 @@ def solve_SDVRP(inst, capacity):
     # to get SDVRP solution for original instance
     ids = [[0]] + [[i] * inst.demands[i] for i in range(1, len(inst.demands))]
     ids = [v for sublist in ids for v in sublist]
-    sdvrp = [[ids[c] for c in route] for route in vrp]
+    if ids == [0]:
+        return [[]]  # No routes
+    else:
+        sdvrp = [[ids[c] for c in route] for route in vrp]
 
     return sdvrp
 
@@ -449,7 +452,7 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
 
     def update_demands(inst, scenario):
         # Creates copy of instance with updated demands depending on scenario
-        if scenario in ['baseline','short_route']:
+        if scenario in ['baseline', 'short_route']:
             new_dems = list(np.random.randint(0, 8, num_cust))  # Uniformly distributed between 0 and 8
         new_dems = list(np.append([0], new_dems))  # include depot in customer demands
         new_inst = Instance(inst.xlocs, inst.ylocs, new_dems, solve_TSP=False)
@@ -468,7 +471,7 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
     return instances
 
 
-#---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 
 def set_best_tours(demand_instances, primary_routes, extended_routes, capacity, route_size, overlap_size):
     """Updates the tour of all instances to the sequence that minimizes the average cost of the routes over all demand instances.
@@ -489,7 +492,8 @@ def set_best_tours(demand_instances, primary_routes, extended_routes, capacity, 
     for c in range(inst.size):
 
         # Rotate tour by one customer (keeps depot at very first spot)
-        tour = tour[0:1] + tour[2:-1] + tour[1:2]
+        tour = tour[0:1] + tour[2:] + tour[1:2]
+        inst.update_tour(tour)
         tour_cost = 0
 
         # Get cumulative cost over all demand instances
@@ -499,14 +503,12 @@ def set_best_tours(demand_instances, primary_routes, extended_routes, capacity, 
             for seg in segments:
                 tour_cost += get_total_cost(inst, seg)
 
+        # Set new best tour if lower cost
         if tour_cost < lowest_cumul_cost:
-            # Set as new best tour and cost
             best_tour = tour
             lowest_cumul_cost = tour_cost
 
     # Update tour for all demand instances in this customer row
     for inst in demand_instances:
         inst.update_tour(best_tour)
-
     return
-
