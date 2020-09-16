@@ -441,8 +441,12 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
         new_ylocs = field_height * np.random.random(num_cust)  # y coordinates of all customers
 
         # Generate demands depending on scenario
-        if scenario in ['baseline', 'short_route']:
-            new_dems = list(np.random.randint(0, 8, num_cust))  # Uniformly distributed between 0 and 8
+        if scenario in ['baseline', 'baseline_k3', 'baseline_k1', 'short_route', 'long_route']:
+            # Uniformly distributed between 0 and 8
+            new_dems = list(np.random.randint(0, 8, num_cust))
+        elif scenario == 'stochastic_customers':
+            # Equal probability of selecting 0 or 8
+            new_dems = list(np.random.choice([0,8], num_cust))
 
         # Return new instance
         new_xlocs = list(np.append([depot_x], new_xlocs))  # include depot in customer x-coords
@@ -452,8 +456,12 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
 
     def update_demands(inst, scenario):
         # Creates copy of instance with updated demands depending on scenario
-        if scenario in ['baseline', 'short_route']:
-            new_dems = list(np.random.randint(0, 8, num_cust))  # Uniformly distributed between 0 and 8
+        if scenario in ['baseline', 'baseline_k3', 'baseline_k1', 'short_route', 'long_route']:
+            # Uniformly distributed between 0 and 8
+            new_dems = list(np.random.randint(0, 8, num_cust))
+        elif scenario == 'stochastic_customers':
+            # Equal probability of selecting 0 or 8
+            new_dems = list(np.random.choice([0,8], num_cust))
         new_dems = list(np.append([0], new_dems))  # include depot in customer demands
         new_inst = Instance(inst.xlocs, inst.ylocs, new_dems, solve_TSP=False)
         new_inst.tour = inst.tour
