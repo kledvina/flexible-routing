@@ -159,17 +159,16 @@ if __name__ == "__main__":
     # Demand uniformly distributed in [0,8]
     # Route size: 5
     # Overlap size: 3
-    baseline_k3_sim = simulate(scenario = 'baseline_k3', problem_sizes = [5,10,20], capacity = 20, route_size = 5, overlap_size = 3, cust_sims = 30, dem_sims = 200)
-    #TODO: baseline_k3_sim = simulate(scenario = 'baseline_k3', problem_sizes = [40], capacity = 20, route_size = 5, overlap_size = 3, cust_sims = 30, dem_sims = 200)
-    #TODO: baseline_k3_sim = simulate(scenario = 'baseline_k3', problem_sizes = [80], capacity = 20, route_size = 5, overlap_size = 3, cust_sims = 30, dem_sims = 200)
+    #baseline_k3_sim = simulate(scenario = 'baseline_k3', problem_sizes = [5,10,20], capacity = 20, route_size = 5, overlap_size = 3, cust_sims = 30, dem_sims = 200)
+    #baseline_k3_sim = simulate(scenario = 'baseline_k3', problem_sizes = [40], capacity = 20, route_size = 5, overlap_size = 3, cust_sims = 30, dem_sims = 200)
+    #baseline_k3_sim = simulate(scenario = 'baseline_k3', problem_sizes = [80], capacity = 20, route_size = 5, overlap_size = 3, cust_sims = 30, dem_sims = 200)
 
     # --- Baseline k=1 simulation ---
     # Demand uniformly distributed in [0,8]
     # Route size: 5
     # Overlap size: 1
-    # TODO: baseline_k1_sim = simulate(scenario = 'baseline_k3', problem_sizes = [40], capacity = 20, route_size = 5, overlap_size = 1, cust_sims = 30, dem_sims = 200)
-    # TODO: baseline_k1_sim = simulate(scenario = 'baseline_k3', problem_sizes = [40], capacity = 20, route_size = 5, overlap_size = 1, cust_sims = 30, dem_sims = 200)
-    # TODO: baseline_k1_sim = simulate(scenario = 'baseline_k3', problem_sizes = [80], capacity = 20, route_size = 5, overlap_size = 1, cust_sims = 30, dem_sims = 200)
+    # baseline_k1_sim = simulate(scenario = 'baseline_k1', problem_sizes = [5,10,20,40], capacity = 20, route_size = 5, overlap_size = 1, cust_sims = 30, dem_sims = 200)
+    # baseline_k1_sim = simulate(scenario = 'baseline_k1', problem_sizes = [80], capacity = 20, route_size = 5, overlap_size = 1, cust_sims = 30, dem_sims = 200)
 
     # --- Short route simulation ---
     # Demand uniformly distributed in [0,8]
@@ -177,25 +176,25 @@ if __name__ == "__main__":
     # Overlap size: 2
     #short_route_sim = simulate(scenario = 'short_route', problem_sizes = [4,10,20], capacity = 8, route_size = 2, overlap_size = 2, cust_sims = 30, dem_sims = 200)
     #short_route_sim = simulate(scenario = 'short_route', problem_sizes = [40], capacity = 8, route_size = 2, overlap_size = 2, cust_sims = 30, dem_sims = 200)
-    #TODO: short_route_sim = simulate(scenario = 'short_route', problem_sizes = [80], capacity = 8, route_size = 2, overlap_size = 2, cust_sims = 30, dem_sims = 200)
+    #short_route_sim = simulate(scenario = 'short_route', problem_sizes = [80], capacity = 8, route_size = 2, overlap_size = 2, cust_sims = 30, dem_sims = 200)
 
     # --- Long route simulation ---
     # Demand uniformly distributed in [0,8]
     # Route size: 10
     # Overlap size: 10
-    #TODO: long_route_sim = simulate(scenario = 'long_route', problem_sizes = [10,20,40], capacity = 40, route_size = 10, overlap_size = 10, cust_sims = 30, dem_sims = 200)
-    #TODO: long_route_sim = simulate(scenario = 'long_route', problem_sizes = [80], capacity = 40, route_size = 10, overlap_size = 10, cust_sims = 30, dem_sims = 200)
+    #long_route_sim = simulate(scenario = 'long_route', problem_sizes = [10,20,40], capacity = 40, route_size = 10, overlap_size = 10, cust_sims = 30, dem_sims = 200)
+    long_route_sim = simulate(scenario = 'long_route', problem_sizes = [80], capacity = 40, route_size = 10, overlap_size = 10, cust_sims = 30, dem_sims = 200)
 
     # --- Stochastic customer simulation ---
     # Demand in {0,8} --> 0 w.p. 0.5 AND 8 w.p. 0.5
     # Route size: 5
     # Overlap size: 5
-    #TODO: stoch_cust_sim = simulate(scenario = 'stochastic_customers', problem_sizes = [5,10,20], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
-    #TODO: stoch_cust_sim = simulate(scenario = 'stochastic_customers', problem_sizes = [40], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
-    #TODO: stoch_cust_sim = simulate(scenario = 'stochastic_customers', problem_sizes = [80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
+    #stoch_cust_sim = simulate(scenario = 'stochastic_customers', problem_sizes = [5,10,20], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
+    #stoch_cust_sim = simulate(scenario = 'stochastic_customers', problem_sizes = [40], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
+    #stoch_cust_sim = simulate(scenario = 'stochastic_customers', problem_sizes = [80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
 
     # Combine all simulation results into single dataframe
-    combined = pd.concat([baseline_k3_sim])
+    combined = pd.concat([long_route_sim])
 
     # Calculate summary statistics over instances
     means = combined.groupby(['Scenario', 'Number of Customers', 'Routing Strategy', 'Metric'])['Value'].mean()
@@ -208,10 +207,10 @@ if __name__ == "__main__":
 
     with pd.ExcelWriter(outfile) as writer:
         #baseline_sim.to_excel(writer, sheet_name = 'baseline')
-        baseline_k3_sim.to_excel(writer, sheet_name='baseline_k3')
+        #baseline_k3_sim.to_excel(writer, sheet_name='baseline_k3')
         #baseline_k1_sim.to_excel(writer, sheet_name='baseline_k1')
         #short_route_sim.to_excel(writer, sheet_name='short_route')
-        #long_route_sim.to_excel(writer, sheet_name='long_route')
+        long_route_sim.to_excel(writer, sheet_name='long_route')
         #stoch_cust_sim.to_excel(writer, sheet_name='stochastic_customers')
         means.to_excel(writer, sheet_name = 'summary_mean')
         sds.to_excel(writer, sheet_name = 'summary_sds')
