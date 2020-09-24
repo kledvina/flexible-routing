@@ -156,7 +156,7 @@ def get_total_cost(inst, segment):
 
 #---------------------------------------------------------------------------------
 
-def solve_VRP(inst, capacity):
+def optimize(inst, capacity):
     def create_data_model(inst, capacity):
         data = {}
         data['distance_matrix'] = inst.distances
@@ -197,7 +197,7 @@ def solve_VRP(inst, capacity):
 
     # Zero cost if no demands
     if all(dem == 0 for dem in inst.demands):
-        return (0, 0, 0)
+        return [[]]
 
     # Set up data model
     data = create_data_model(inst, capacity)
@@ -235,6 +235,7 @@ def solve_VRP(inst, capacity):
 
     # Remove the depot from the optimal routes
     parsed_routes = [route[1:-1] for route in nonempty_routes]
+
     return parsed_routes
 
 
@@ -243,25 +244,28 @@ def solve_VRP(inst, capacity):
 def solve_SDVRP(inst, capacity):
     """Creates equivalent demand/location instance with unit demand and solves the VRP with splittable demands"""
     # Create equivalent instance with unit demand customers
-    split_xlocs = [[0]] + [[inst.xlocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
-    split_ylocs = [[0]] + [[inst.ylocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
-    split_demands = [[0]] + [[1] * inst.demands[i] for i in range(1, len(inst.demands))]
+    split_xlocs = [[depot_x]] + [[inst.xlocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
     split_xlocs = [v for sublist in split_xlocs for v in sublist]
+
+    split_ylocs = [[depot_y]] + [[inst.ylocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
     split_ylocs = [v for sublist in split_ylocs for v in sublist]
+
+    split_demands = [[0]] + [[1] * inst.demands[i] for i in range(1, len(inst.demands))]
     split_demands = [v for sublist in split_demands for v in sublist]
+
     split_inst = Instance(split_xlocs, split_ylocs, split_demands, solve_TSP=False)
 
     # Solve VRP with unit demand customers
-    vrp = solve_VRP(split_inst, capacity)
+    vrp = optimize(split_inst, capacity)
 
     # Convert back to non-unit demand problem
     # to get SDVRP solution for original instance
-    ids = [[0]] + [[i] * inst.demands[i] for i in range(1, len(inst.demands))]
+    ids = [[i] * inst.demands[i] for i in range(1, len(inst.demands))]
     ids = [v for sublist in ids for v in sublist]
-    if ids == [0]:
+    if ids == []:
         return [[]]  # No routes
     else:
-        sdvrp = [[ids[c] for c in route] for route in vrp]
+        sdvrp = [[ids[c - 1] for c in route] for route in vrp]
 
     return sdvrp
 

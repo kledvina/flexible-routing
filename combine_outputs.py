@@ -1,3 +1,5 @@
+# Based on https://pythoninoffice.com/use-python-to-combine-multiple-excel-files/
+
 import os
 import pandas as pd
 
