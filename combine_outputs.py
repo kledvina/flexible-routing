@@ -2,6 +2,7 @@
 
 import os
 import pandas as pd
+import time
 
 # Get files
 cwd = os.getcwd() + '/output'
@@ -34,5 +35,6 @@ for j in range(master.shape[1]-2):
             master.iloc[i,j] = master.iloc[i-1,j]
 
 # Save combined file
-master.to_excel('combined_outputs.xlsx')
+date = time.strftime("%Y-%m-%d")
+master.to_excel('combined_outputs_'+date+'.xlsx')
 print('Complete.')

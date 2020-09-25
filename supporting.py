@@ -379,6 +379,8 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
     excess = np.zeros(len(primary_routes))  # surplus capacity for each vehicle (updated below)
     workload = np.zeros(len(primary_routes))  # demand ultimately filled by each vehicle (updated below)
 
+    realized_routes = []
+
     # Loop through vehicles
     for j in range(len(primary_routes)):
 
@@ -396,13 +398,19 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
                 # fill demand of next shared customer
                 # override default first and last customer if appropriate
                 remaining_surplus -= inst.demands[overlapped_segments[j][i]]
-                # set first and last customers
+
                 if remaining_surplus == 0:
+                    # set last customer
                     last[j] = overlapped_segments[j][i]
-                    if i != len(overlapped_segments[j]) - 1:
-                        first[j + 1] = overlapped_segments[j][i + 1]
+
+                    # set first customer for next route
+                    if i == len(overlapped_segments[j]) - 1 and overlap_size == route_size:
+                        # next vehicle does not need to leave depot
+                        first[j + 1] = 0  # next vehicle does not need to leave depot
                     else:
-                        first[j + 1] = 0  # next vehicle doesn't need to leave depot
+                        #
+                        first[j + 1] = primary_routes[j + 1][i + 1]
+
                 elif remaining_surplus < 0:
                     # vehicles will split this customer
                     last[j] = overlapped_segments[j][i]
