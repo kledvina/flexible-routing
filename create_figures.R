@@ -126,7 +126,6 @@ sims %>%
 ggsave('figures/trips.png')
 
 
-
 # Distribution of individual runs' costs by strategy
 sims %>%
    filter(Scenario == 'Baseline',
@@ -181,7 +180,6 @@ sims %>%
    scale_color_grey(start = 0.3)
 
 ggsave('figures/scenario_cost.png')
-
 
 
 # Comparison of scenarios' distributions within individual strategies

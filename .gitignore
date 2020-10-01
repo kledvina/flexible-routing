@@ -2,4 +2,5 @@
 .DS_Store
 output/
 temp/
-/old/
+output/zold/
+old/
