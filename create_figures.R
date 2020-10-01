@@ -3,8 +3,8 @@
 
 library(tidyverse)
 library(readxl)
-theme_set(theme_classic())
-theme_set(theme_classic(base_size = 12))
+theme_set(theme_bw())
+theme_set(theme_bw(base_size = 12))
 setwd("~/Documents/flexible-routing")
 
 
@@ -107,18 +107,25 @@ ggsave('figures/cost_breakdown.png')
 
 
 # Number of trips
-# KL: Include condidence bars?
 sims %>%
    filter(Scenario == 'Baseline',
           Metric == 'Trip Count') %>%
    mutate(Customers = factor(Customers)) %>%
+   group_by(Customers, Strategy) %>%
+   summarise(#ci_2.5 = quantile(Value, probs = c(0.025)),
+             #ci_97.5 = quantile(Value, probs = c(0.975)),
+             Value = mean(Value)) %>%
    ggplot() +
    aes(x = Customers, y = Value, fill = Strategy) + 
    geom_bar(stat = 'identity', position = 'dodge') +
+   #geom_errorbar(aes(ymin=ci_2.5, ymax=ci_97.5), colour="black",
+   #              width=.1, position = position_dodge(0.9)) +
    labs(x = 'Number of Customers', y = 'Trip Count') + 
    scale_fill_grey(start = 0.3)
 
 ggsave('figures/trips.png')
+
+
 
 # Distribution of individual runs' costs by strategy
 sims %>%
@@ -140,7 +147,41 @@ ggsave('figures/hist_total.png')
 #---------- Scenario Comparisons ----------#
 
 # Compare k=1, k=3, and k=5 strategies
-# TODO
+sims %>%
+   filter(Scenario %in% c('Baseline', 'Medium Overlap', 'Small Overlap'),
+          Metric != 'Trip Count',
+          Strategy == 'Overlapped') %>%
+   mutate(Customers = factor(Customers)) %>%
+   group_by(Scenario, Customers, Strategy, Metric) %>%
+   summarise(Value = mean(Value)) %>%
+   ggplot() +
+   aes(x = Customers, y = Value, fill = Scenario) + 
+   geom_bar(stat = 'identity', position = 'dodge') +
+   labs(x = 'Number of Customers', y = 'Cost') + 
+   facet_wrap(Metric ~.) +
+   scale_fill_grey(start = 0.3)
+
+ggsave('figures/overlap_size_cost.png')
+
+
+# Comparison of total cost for other scenarios
+sims %>%
+   filter(Scenario %in% c('Baseline', 'Stoch. Cust.', 'Long Route'),
+          Metric == 'Total Cost',
+          Customers != 5) %>%
+   mutate(Customers = factor(Customers)) %>%
+   group_by(Scenario, Customers, Strategy, Metric) %>%
+   summarise(Value = mean(Value)) %>%
+   ggplot() +
+   aes(x = Customers, y =  Value, group = Scenario, color = Scenario,
+       linetype = Scenario, shape = Scenario) +
+   geom_line(size = 1) + geom_point(size = 2) +
+   labs(x = 'Number of Customers', y = 'Cost') + 
+   facet_wrap(Strategy ~.) +
+   scale_color_grey(start = 0.3)
+
+ggsave('figures/scenario_cost.png')
+
 
 
 # Comparison of scenarios' distributions within individual strategies
