@@ -57,7 +57,6 @@ sims <- sims %>%
 
 
 #---------- Baseline Graphs ----------#
-
 # Total cost
 sims %>%
    filter(Scenario == 'Baseline',
@@ -124,7 +123,8 @@ sims %>%
    expand_limits(y=0) +
    facet_wrap(Metric ~., scales = 'free') +
    scale_color_brewer(palette = "Dark2") +
-   theme(aspect.ratio = 0.75)
+   theme(aspect.ratio = 1.25)
+
 #scale_color_grey(start = 0.3)
 ggsave('figures/combined_total_rel_cost.png')
 
@@ -142,7 +142,7 @@ sims %>%
    labs(x = 'Number of Customers', y = 'Cost') + 
    facet_wrap(Strategy ~.) +
    scale_fill_brewer(palette = "Dark2") +
-   theme(aspect.ratio = 0.75)
+   theme(aspect.ratio = 1.25)
    #scale_fill_grey(start = 0.4)
 
 ggsave('figures/cost_breakdown.png')
@@ -213,7 +213,7 @@ sims %>%
    geom_hline(yintercept = 1.0, alpha = 0.75, linetype = 'dashed') +
    labs(x = 'Number of Customers', y = 'Cost (Rel. to Dedicated)') + 
    facet_wrap(Metric ~.) +
-   theme(aspect.ratio = 0.75) +
+   theme(aspect.ratio = 1.25) +
    scale_fill_brewer(palette = "Dark2")
    #scale_fill_grey(start = 0.3)
 
@@ -237,7 +237,7 @@ sims %>%
    geom_bar(stat = 'identity', position = 'dodge') +
    labs(x = 'Number of Customers', y = 'Cost (Rel. to Baseline)') + 
    facet_wrap(Strategy ~.) +
-   theme(aspect.ratio = 0.75) +
+   theme(aspect.ratio = 1.25) +
    scale_fill_brewer(palette = "Dark2")
    #scale_fill_grey(start = 0.3)
 
@@ -258,34 +258,27 @@ sims %>%
    geom_line(size = 1) + geom_point(size = 2) +
    labs(x = 'Number of Customers', y = 'Cost') + 
    facet_wrap(Strategy ~.) +
-   scale_color_brewer(palette = "Dark2")
+   scale_color_brewer(palette = "Dark2") +
+   theme(aspect.ratio = 1.25)
    #scale_color_grey(start = 0.3)
 
 ggsave('figures/scenario_cost.png')
 
 
 # Comparison of scenarios' distributions within individual strategies
-strategies = unique(sims$Strategy)
-for (strat in strategies){
-   
-   sims %>%
-      filter(Scenario %in% c('Baseline', 'Short Route', 'Small Overlap', 'Stoch. Cust.'),
-             Customers %in% c(10,80),
-             Strategy == strat,
-             Metric == 'Total Cost') %>%
-      mutate(`Number of Customers` = factor(Customers)) %>%
-      ggplot() +
-      aes(x = Value, fill=`Number of Customers`) +
-      geom_histogram(color='black', bins = 100) + 
-      facet_grid(Scenario~.) +
-      labs(x = 'Total Cost', y = 'Count') + 
-      scale_fill_brewer(palette = "Dark2") +
-      theme(aspect.ratio = 0.25, legend.position = 'top')
-      #scale_fill_grey(start = 0.4)
-   
-   ggsave(paste('figures/hist_compare_',strat,'.png', sep = ''))
-   
-}
+sims %>%
+   filter(Scenario %in% c('Baseline', 'Short Route', 'Stoch. Cust.'),
+          Customers %in% c(10,80),
+          Metric == 'Total Cost') %>%
+   mutate(`Number of Customers` = factor(Customers)) %>%
+   ggplot() +
+   aes(x = Value, fill=`Number of Customers`) +
+   geom_histogram(color='black', bins = 40) + 
+   facet_grid(Scenario~Strategy) +
+   labs(x = 'Total Cost', y = 'Count') + 
+   scale_fill_brewer(palette = "Dark2") +
+   theme(aspect.ratio = 0.5, legend.position = 'top')
+#scale_fill_grey(start = 0.4)
 
-
+ggsave('figures/hist_compare_all.png')
 
