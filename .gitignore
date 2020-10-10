@@ -1,7 +1,6 @@
 
 .DS_Store
-output/
-temp/
-output/zold/
-old/
-figures/cropped/
+/output/
+/temp/
+/old/
+/figures/cropped/
