@@ -118,7 +118,7 @@ sims %>%
    aes(x = Customers, y =  Value,
        group = Strategy, color = Strategy,
        linetype = Strategy, shape = Strategy) +
-   geom_line(size = 1) + geom_point(size = 2) +
+   geom_line(size = 1.5) + geom_point(size = 3) +
    labs(x = 'Number of Customers', y = 'Cost') + 
    expand_limits(y=0) +
    facet_wrap(Metric ~., scales = 'free') +
@@ -196,6 +196,9 @@ sims %>%
 
 
 #---------- Scenario Comparisons ----------#
+
+### Overlap size
+
 # Compare overlapped strategies for baseline, small overlap, and medium overlap
 # scenarios to dedicated strategy (same for all scenarios)
 sims %>%
@@ -220,7 +223,8 @@ sims %>%
 ggsave('figures/overlap_size_cost.png')
 
 
-# Compare low and high capacity scenarios to baseline
+### Capacity
+
 sims %>%
    filter(Scenario %in% c('Baseline', 'Low Capacity', 'High Capacity'),
           Metric == 'Total Cost') %>%
@@ -235,6 +239,7 @@ sims %>%
    ggplot() +
    aes(x = Customers, y =  Value, fill = Scenario) +
    geom_bar(stat = 'identity', position = 'dodge') +
+   geom_hline(yintercept = 1.0, alpha = 0.75, linetype = 'dashed') +
    labs(x = 'Number of Customers', y = 'Cost (Rel. to Baseline)') + 
    facet_wrap(Strategy ~.) +
    theme(aspect.ratio = 1.25) +
@@ -244,11 +249,75 @@ sims %>%
 ggsave('figures/capacity_cost.png')
 
 
+### Route size
+
+# Circular and radial cost breakdown
+sims %>%
+   filter(Scenario %in% c('Baseline', 'Long Route', 'Short Route'),
+          Metric %in% c('Circular Cost', 'Radial Cost'),
+          !Customers %in% c(4,5)) %>%
+   group_by(Customers, Strategy, Scenario, Metric) %>%
+   summarise(Value = mean(Value)) %>%
+   ggplot() +
+   aes(x = Customers, y =  Value,
+       group = Metric, fill = Metric) +
+   geom_area() +
+   labs(x = 'Number of Customers', y = 'Cost') + 
+   facet_grid(Strategy ~ Scenario) +
+   scale_fill_brewer(palette = "Dark2") +
+   expand_limits(x = 0, y = 0) +
+   theme(aspect.ratio = 0.75)
+#ggsave('figures/cost_breakdown.png')
+#scale_fill_grey(start = 0.4)
+
+ggsave('figures/route_size_cost_breakdown.png')
+
+
+
+# Combined: Total & Relative to Reoptimization
+reopt_routesize <- sims %>%
+   filter(Scenario %in% c('Baseline', 'Long Route', 'Short Route'),
+          Metric == 'Total Cost',
+          Strategy == 'Reoptimization',
+          !Customers %in% c(4,5)) %>%
+   group_by(Customers, Scenario) %>%
+   summarise(avg_reopt = mean(Value))
+
+sims %>%
+   filter(Scenario %in% c('Baseline', 'Long Route', 'Short Route'),
+          Metric == 'Total Cost',
+          !Customers %in% c(4,5)) %>%
+   merge(reopt_routesize) %>%
+   group_by(Customers, Strategy, Scenario) %>%
+   summarise(`Total Cost` = mean(Value),
+             `Relative Cost` = mean(Value)/mean(avg_reopt)) %>%
+   gather(Metric, Value, `Total Cost`, `Relative Cost`) %>%
+   mutate(Metric = factor(Metric, levels = c("Total Cost", "Relative Cost"))) %>%
+   ggplot() +
+   aes(x = Customers, y =  Value,
+       group = Strategy, color = Strategy,
+       linetype = Strategy, shape = Strategy) +
+   geom_line(size = 1.5) + geom_point(size = 3) +
+   labs(x = 'Number of Customers', y = 'Cost') + 
+   expand_limits(y=0) +
+   facet_grid(Metric ~ Scenario, scales = 'free') +
+   scale_color_brewer(palette = "Dark2") +
+   expand_limits(x = 0, y = 0) +
+   theme(aspect.ratio = 1.25)
+
+ggsave('figures/route_size_cost.png')
+
+
+
+
+
+
+
 ### Comparison of total cost for other scenarios
 sims %>%
-   filter(Scenario %in% c('Baseline', 'Stoch. Cust.', 'Long Route'),
+   filter(Scenario %in% c('Baseline', 'Stoch. Cust.', 'Short Route'),
           Metric == 'Total Cost',
-          Customers != 5) %>%
+          !Customers %in% c(4,5)) %>%
    mutate(Customers = factor(Customers)) %>%
    group_by(Scenario, Customers, Strategy, Metric) %>%
    summarise(Value = mean(Value)) %>%

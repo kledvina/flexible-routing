@@ -183,6 +183,12 @@ if __name__ == "__main__":
     # Overlap size: 5
     #results = simulate(scenario = 'stochastic_customers', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
 
+    # --- Binomial demand simulation ---
+    # Demand in {0,8} --> 0 w.p. 0.5 AND 8 w.p. 0.5
+    # Route size: 5
+    # Overlap size: 5
+    results = simulate(scenario = 'binomial', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
+
     # --- Low capacity simulation ---
     # Demand uniformly distributed in [0,8]
     # Route size: 5
@@ -195,7 +201,7 @@ if __name__ == "__main__":
     # Route size: 5
     # Overlap size: 5
     # Capacity is 125% of E[D]
-    results = simulate(scenario = 'high_capacity', problem_sizes = [5,10,20,40,80], capacity = 25, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
+    #results = simulate(scenario = 'high_capacity', problem_sizes = [5,10,20,40,80], capacity = 25, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
 
     # Calculate summary statistics over instances
     means = results.groupby(['Scenario', 'Number of Customers', 'Routing Strategy', 'Metric'])['Value'].mean()
@@ -213,8 +219,9 @@ if __name__ == "__main__":
         #results.to_excel(writer, sheet_name='short_route')
         #results.to_excel(writer, sheet_name='long_route')
         #results.to_excel(writer, sheet_name='stochastic_customers')
+        results.to_excel(writer, sheet_name='binomial')
         #results.to_excel(writer, sheet_name='low_capacity')
-        results.to_excel(writer, sheet_name='high_capacity')
+        #results.to_excel(writer, sheet_name='high_capacity')
         means.to_excel(writer, sheet_name = 'summary_mean')
         sds.to_excel(writer, sheet_name = 'summary_sds')
         ci_low.to_excel(writer, sheet_name = 'summary_ci_low')

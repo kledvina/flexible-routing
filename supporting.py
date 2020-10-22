@@ -1,9 +1,9 @@
-import sys
+#import sys
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import math
-import random
-import time
+#import random
+#import time
 #from concorde.tsp import TSPSolver
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
@@ -456,6 +456,9 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
         if scenario == 'stochastic_customers':
             # Equal probability of selecting 0 or 8
             new_dems = list(np.random.choice([0,8], num_cust))
+        elif scenario == 'binomial':
+            # Binomial(8,0.5) distribution
+            new_dems = list(np.random.binomial(8, 0.5, num_cust))
         else:
             # Uniformly distributed between 0 and 8
             new_dems = list(np.random.randint(0, 8, num_cust))
@@ -472,6 +475,9 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
         if scenario == 'stochastic_customers':
             # Equal probability of selecting 0 or 8
             new_dems = list(np.random.choice([0, 8], num_cust))
+        elif scenario == 'binomial':
+            # Binomial(8,0.5) distribution
+            new_dems = list(np.random.binomial(8, 0.5, num_cust))
         else:
             # Uniformly distributed between 0 and 8
             new_dems = list(np.random.randint(0, 8, num_cust))
