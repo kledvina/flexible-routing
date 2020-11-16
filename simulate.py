@@ -184,7 +184,7 @@ if __name__ == "__main__":
     #results = simulate(scenario = 'stochastic_customers', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
 
     # --- Binomial demand simulation ---
-    # Demand in {0,8} --> 0 w.p. 0.5 AND 8 w.p. 0.5
+    # Demand ~ Binomial(8,0.5)
     # Route size: 5
     # Overlap size: 5
     results = simulate(scenario = 'binomial', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)

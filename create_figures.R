@@ -30,6 +30,7 @@ sims[(sims$Scenario == 'baseline_k1'),]$Scenario = 'Small Overlap'
 sims[(sims$Scenario == 'short_route'),]$Scenario = 'Short Route'
 sims[(sims$Scenario == 'long_route'),]$Scenario = 'Long Route'
 sims[(sims$Scenario == 'stochastic_customers'),]$Scenario = 'Stoch. Cust.'
+sims[(sims$Scenario == 'binomial'),]$Scenario = 'Bin. Demand'
 sims[(sims$Scenario == 'low_capacity'),]$Scenario = 'Low Capacity'
 sims[(sims$Scenario == 'high_capacity'),]$Scenario = 'High Capacity'
 
@@ -197,7 +198,7 @@ sims %>%
 
 #---------- Scenario Comparisons ----------#
 
-### Overlap size
+#--- Overlap size ---#
 
 # Compare overlapped strategies for baseline, small overlap, and medium overlap
 # scenarios to dedicated strategy (same for all scenarios)
@@ -223,7 +224,7 @@ sims %>%
 ggsave('figures/overlap_size_cost.png')
 
 
-### Capacity
+#---Capacity---#
 
 sims %>%
    filter(Scenario %in% c('Baseline', 'Low Capacity', 'High Capacity'),
@@ -249,7 +250,7 @@ sims %>%
 ggsave('figures/capacity_cost.png')
 
 
-### Route size
+#---Route size---#
 
 # Circular and radial cost breakdown
 sims %>%
@@ -271,8 +272,6 @@ sims %>%
 #scale_fill_grey(start = 0.4)
 
 ggsave('figures/route_size_cost_breakdown.png')
-
-
 
 # Combined: Total & Relative to Reoptimization
 reopt_routesize <- sims %>%
@@ -309,34 +308,39 @@ ggsave('figures/route_size_cost.png')
 
 
 
+#--- Demand distributions ---#
 
+# Percent of sims where overlapped did better than dedicated
+share_table <- sims %>%
+   filter(Scenario %in% c('Baseline', 'Bin. Demand', 'Stoch. Cust.'),
+          Metric == 'Total Cost') %>%
+   spread(Strategy, Value) %>%
+   group_by(Scenario, Customers) %>%
+   summarise(`Lower Cost` = 100*sum(Overlapped < Dedicated) / num_sims,
+             `Equal Cost` = 100*sum(Overlapped == Dedicated) / num_sims,
+             `Higher Cost` = 100*sum(Overlapped > Dedicated) / num_sims)
 
+share_table
 
-
-### Comparison of total cost for other scenarios
-sims %>%
-   filter(Scenario %in% c('Baseline', 'Stoch. Cust.', 'Short Route'),
-          Metric == 'Total Cost',
-          !Customers %in% c(4,5)) %>%
+share_table %>%
+   gather(`Overlapped Cost`, Percent, `Lower Cost`, `Equal Cost`, `Higher Cost`) %>%
    mutate(Customers = factor(Customers)) %>%
-   group_by(Scenario, Customers, Strategy, Metric) %>%
-   summarise(Value = mean(Value)) %>%
    ggplot() +
-   aes(x = Customers, y =  Value, group = Scenario, color = Scenario,
+   aes(x = Customers, y = Percent, color = Scenario, group = Scenario,
        linetype = Scenario, shape = Scenario) +
-   geom_line(size = 1) + geom_point(size = 2) +
-   labs(x = 'Number of Customers', y = 'Cost') + 
-   facet_wrap(Strategy ~.) +
+   geom_line(size = 1.5) + geom_point(size = 3) +
+   labs(x = 'Number of Customers') +
+   facet_wrap(`Overlapped Cost` ~.) +
    scale_color_brewer(palette = "Dark2") +
+   expand_limits(x = 0, y = 0) +
    theme(aspect.ratio = 1.25)
-   #scale_color_grey(start = 0.3)
 
-ggsave('figures/scenario_cost.png')
+ggsave('figures/dem_scen_cost.png')
 
 
 # Comparison of scenarios' distributions within individual strategies
 sims %>%
-   filter(Scenario %in% c('Baseline', 'Short Route', 'Stoch. Cust.'),
+   filter(Scenario %in% c('Baseline', 'Bin. Demand', 'Stoch. Cust.'),
           Customers %in% c(10,80),
           Metric == 'Total Cost') %>%
    mutate(`Number of Customers` = factor(Customers)) %>%
@@ -349,5 +353,6 @@ sims %>%
    theme(aspect.ratio = 0.5, legend.position = 'top')
 #scale_fill_grey(start = 0.4)
 
-ggsave('figures/hist_compare_all.png')
+ggsave('figures/dem_scen_hists.png')
+
 
