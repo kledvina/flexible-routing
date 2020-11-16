@@ -75,7 +75,7 @@ sims %>%
    theme(aspect.ratio = 0.75)
    #scale_color_grey(start = 0.3)
 
-ggsave('figures/total_cost.png')
+ggsave('figures/raw/total_cost.png')
 
 
 # Relative to Reoptimization
@@ -103,7 +103,7 @@ sims %>%
    theme(aspect.ratio = 0.75)
    #scale_color_grey(start = 0.3)
    
-ggsave('figures/rel_cost.png')
+ggsave('figures/raw/rel_cost.png')
 
 # Combined: Total & Relative to Reoptimization
 sims %>%
@@ -127,7 +127,7 @@ sims %>%
    theme(aspect.ratio = 1.25)
 
 #scale_color_grey(start = 0.3)
-ggsave('figures/combined_total_rel_cost.png')
+ggsave('figures/raw/combined_total_rel_cost.png')
 
 
 # Circular and Radial Cost
@@ -146,7 +146,7 @@ sims %>%
    theme(aspect.ratio = 1.25)
    #scale_fill_grey(start = 0.4)
 
-ggsave('figures/cost_breakdown.png')
+ggsave('figures/raw/cost_breakdown.png')
 
 
 # Number of trips
@@ -164,7 +164,7 @@ sims %>%
    theme(aspect.ratio = 0.75)
    #scale_fill_grey(start = 0.3)
 
-ggsave('figures/trips.png')
+ggsave('figures/raw/trips.png')
 
 
 # Distribution of individual runs' costs by strategy
@@ -182,7 +182,7 @@ sims %>%
    theme(aspect.ratio = 0.25, legend.position="top")
    #scale_fill_grey(start = 0.3, end = 0.9)
 
-ggsave('figures/hist_total.png')
+ggsave('figures/raw/hist_total.png')
 
 
 # Percent of sims where overlapped did better than dedicated
@@ -221,7 +221,7 @@ sims %>%
    scale_fill_brewer(palette = "Dark2")
    #scale_fill_grey(start = 0.3)
 
-ggsave('figures/overlap_size_cost.png')
+ggsave('figures/raw/overlap_size_cost.png')
 
 
 #---Capacity---#
@@ -247,7 +247,7 @@ sims %>%
    scale_fill_brewer(palette = "Dark2")
    #scale_fill_grey(start = 0.3)
 
-ggsave('figures/capacity_cost.png')
+ggsave('figures/raw/capacity_cost.png')
 
 
 #---Route size---#
@@ -271,7 +271,7 @@ sims %>%
 #ggsave('figures/cost_breakdown.png')
 #scale_fill_grey(start = 0.4)
 
-ggsave('figures/route_size_cost_breakdown.png')
+ggsave('figures/raw/route_size_cost_breakdown.png')
 
 # Combined: Total & Relative to Reoptimization
 reopt_routesize <- sims %>%
@@ -304,7 +304,7 @@ sims %>%
    expand_limits(x = 0, y = 0) +
    theme(aspect.ratio = 1.25)
 
-ggsave('figures/route_size_cost.png')
+ggsave('figures/raw/route_size_cost.png')
 
 
 
@@ -335,7 +335,7 @@ share_table %>%
    expand_limits(x = 0, y = 0) +
    theme(aspect.ratio = 1.25)
 
-ggsave('figures/dem_scen_cost.png')
+ggsave('figures/raw/dem_scen_cost.png')
 
 
 # Comparison of scenarios' distributions within individual strategies
@@ -353,6 +353,6 @@ sims %>%
    theme(aspect.ratio = 0.5, legend.position = 'top')
 #scale_fill_grey(start = 0.4)
 
-ggsave('figures/dem_scen_hists.png')
+ggsave('figures/raw/dem_scen_hists.png')
 
 
