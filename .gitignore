@@ -1,7 +1,9 @@
 
-/temp/
-/old/
-/thesis_figures/
+old/
+thesis_figures/
+temp/*
+!temp/.gitkeep
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -14,4 +16,3 @@ __pycache__/
 # R history files
 .Rhistory
 
-.DS_Store
