@@ -1,6 +1,16 @@
 
+temp/
+old/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# R history files
+.Rhistory
+
 .DS_Store
-/output/
-/temp/
-/old/
-/figures/cropped/
