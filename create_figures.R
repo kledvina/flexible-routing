@@ -177,6 +177,15 @@ sims %>%
    filter(Scenario == 'Baseline',
           Customers %in% c(5,20,80),
           Metric == 'Total Cost') %>%
+   group_by(Customers, Strategy) %>%
+   summarise(mean(Value),
+             median(Value),
+             sd(Value))
+
+sims %>%
+   filter(Scenario == 'Baseline',
+          Customers %in% c(5,20,80),
+          Metric == 'Total Cost') %>%
    mutate(`Number of Customers` = factor(Customers)) %>%
    ggplot() +
    aes(x = Value, fill=`Number of Customers`) +
