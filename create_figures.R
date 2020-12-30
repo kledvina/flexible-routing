@@ -9,7 +9,7 @@ library(readxl)
 library(RColorBrewer)
 theme_set(theme_bw())
 #theme_set(theme_bw(base_size = 22))
-theme_set(theme_bw(base_size = 16))
+theme_set(theme_bw(base_size = 14))
 
 setwd("~/Documents/flexible-routing") # Set to file directory
 outpath <- "figures/inc_full_flex/" # Set to relative location of folder for figures
