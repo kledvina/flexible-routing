@@ -8,7 +8,8 @@ library(tidyverse)
 library(readxl)
 library(RColorBrewer)
 theme_set(theme_bw())
-theme_set(theme_bw(base_size = 22))
+#theme_set(theme_bw(base_size = 22))
+theme_set(theme_bw(base_size = 16))
 
 setwd("~/Documents/flexible-routing") # Set to file directory
 outpath <- "figures/inc_full_flex/" # Set to relative location of folder for figures
@@ -128,7 +129,7 @@ sims %>%
    aes(x = Customers, y =  Value,
        group = Strategy, color = Strategy,
        linetype = Strategy, shape = Strategy) +
-   geom_line(size = 1.5) + geom_point(size = 3) +
+   geom_line(size = 1) + geom_point(size = 2) +
    labs(x = 'Number of Customers', y = 'Cost') + 
    expand_limits(y=0) +
    facet_wrap(Metric ~., scales = 'free') +
@@ -314,7 +315,7 @@ sims %>%
    aes(x = Customers, y =  Value,
        group = Strategy, color = Strategy,
        linetype = Strategy, shape = Strategy) +
-   geom_line(size = 1.5) + geom_point(size = 3) +
+   geom_line(size = 1) + geom_point(size = 2) +
    labs(x = 'Number of Customers', y = 'Cost') + 
    expand_limits(y=0) +
    facet_grid(Metric ~ Scenario, scales = 'free') +
@@ -342,11 +343,11 @@ share_table
 
 share_table %>%
    gather(`Overlapped Cost`, Percent, `Lower Cost`, `Equal Cost`, `Higher Cost`) %>%
-   mutate(Customers = factor(Customers)) %>%
+   #mutate(Customers = factor(Customers)) %>%
    ggplot() +
    aes(x = Customers, y = Percent, color = Scenario, group = Scenario,
        linetype = Scenario, shape = Scenario) +
-   geom_line(size = 1.5) + geom_point(size = 3) +
+   geom_line(size = 1) + geom_point(size = 2) +
    labs(x = 'Number of Customers') +
    facet_wrap(`Overlapped Cost` ~.) +
    scale_color_brewer(palette = "Dark2") +
