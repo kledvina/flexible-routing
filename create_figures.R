@@ -11,7 +11,7 @@ theme_set(theme_bw())
 theme_set(theme_bw(base_size = 22))
 
 setwd("~/Documents/flexible-routing") # Set to file directory
-outpath <- "figures/" # Set to relative location of folder for figures
+outpath <- "figures/inc_full_flex/" # Set to relative location of folder for figures
 num_sims <- 6000 # As set in Python simulation code
 
 
@@ -39,13 +39,17 @@ sims[(sims$Scenario == 'binomial'),]$Scenario = 'Bin. Demand'
 sims[(sims$Scenario == 'low_capacity'),]$Scenario = 'Low Capacity'
 sims[(sims$Scenario == 'high_capacity'),]$Scenario = 'High Capacity'
 
-# Drop full flexibility strategy
-sims <- sims[!(sims$Strategy == 'fully flexible'),]
-
-# Rename routing strategies
+# Rename and reorder routing strategies
 sims[(sims$Strategy == 'dedicated'),]$Strategy = 'Dedicated'
 sims[(sims$Strategy == 'overlapped'),]$Strategy = 'Overlapped'
 sims[(sims$Strategy == 'reoptimization'),]$Strategy = 'Reoptimization'
+sims[(sims$Strategy == 'fully flexible'),]$Strategy = 'Full Flexibility'
+
+sims$Strategy = factor(sims$Strategy,
+                       levels = c('Dedicated', 'Overlapped', 'Full Flexibility', 'Reoptimization'))
+
+# Drop full flexibility strategy (optional)
+#sims <- sims[!(sims$Strategy == 'Full Flexibility'),]
 
 # Rename metrics
 sims[(sims$Metric == 'total cost'),]$Metric = 'Total Cost'
@@ -284,7 +288,7 @@ sims %>%
    theme(aspect.ratio = 0.75)
    #scale_fill_grey(start = 0.4)
 
-ggsave(paste(outpath, 'route_size_cost_breakdown.png', sep=''))
+#ggsave(paste(outpath, 'route_size_cost_breakdown.png', sep=''))
 
 
 # Combined: Total & Relative to Reoptimization
