@@ -29,9 +29,8 @@ Also, the Jupyter notebook *routing_examples.ipynb* is a supplemental file that 
 ## Running Simulations
 To perform additional simulations, you will need to edit *simulate.py* to specify the scenario details as well as problem sizes and number of random instances to generate. A scenario defines several network parameters, namely primary route size, overlap size, vehicle capacity, and customer demand distribution. The code is set up to easily accomodate the following scenarios:
 
-TODO. Insert Scenario Table.
-![Scenarios](figures/scenario.png?raw=true "Scenarios")
- 
+![Scenarios](https://github.com/kledvina/flexible-routing/blob/master/figures/scenarios.png)
+
 For example, if you edit *simulate.py*, you will see the following line:
 
 TODO
