@@ -9,7 +9,7 @@ We define four alternative strategies for designing and executing routes with va
 
 ## Contents
 
-This repository includes simulation code (Python), output data and figures, and an R script for creating summary figures from the data.
+This repository includes simulation code (Python), output data and figures, and an R script for creating summary figures from the data. Files include lightly edited code blocks from [Google OR-Tools](https://developers.google.com/optimization/) for the routing optimization steps (the TSP and VRP solvers).
 
 **Code Files**
 - *simulate.py* - defines new scenarios, runs the simulation, and saves the simulation's output as a single .xlsx file in the *output/* subfolder
