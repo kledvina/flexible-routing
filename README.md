@@ -27,6 +27,12 @@ Also, the Jupyter notebook *routing_examples.ipynb* is a supplemental file that 
 \*Note: We structured our simulation runs so that each file in *output/* covers a unique scenario.
 
 ## Running Simulations
+
+**Requirements**
+The simulation code runs with Python 3.7. You will need the pandas and numpy packages. You also need to install Google OR-Tools within your Python version by following [these instructions](https://developers.google.com/optimization/install).
+
+**Running simulate.py**
+
 To perform additional simulations, you will need to edit *simulate.py* to specify the scenario details as well as problem sizes and number of random instances to generate. A scenario defines several network parameters, namely primary route size, overlap size, vehicle capacity, and customer demand distribution. The code is set up to easily accomodate the following scenarios:
 
 ![Scenarios](https://github.com/kledvina/flexible-routing/blob/master/figures/scenarios.png)
@@ -36,8 +42,6 @@ For example, if you edit *simulate.py*, you will see the following line:
 TODO
 
 Comment, uncomment, and edit lines as applicable. If you wish to create a scenario other than one listed above, please refer to the section below on defining new scenarios. Save and close *simulate.py*.
-
-**Running simulate.py**
 
 TODO. Note that simulate.py does NOT have a command line interface, which is why we needed to directly edit the file as described in the section above.
 
