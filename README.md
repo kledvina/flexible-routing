@@ -38,7 +38,7 @@ You will need to edit *simulate.py* directly to specify the scenario details as 
 
 ![Scenarios](https://github.com/kledvina/flexible-routing/blob/master/figures/scenarios.png)
 
-For example, you can find the following line in *simulate.py*:
+**Open *simulate.py* in a code editor.** Scroll down in the file until you can find the following line:
 
     results = simulate(scenario = 'baseline', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
 
@@ -67,7 +67,7 @@ with your desired output file path and Excel sheet names. The output is an Excel
 You can now run *simulate.py* from the command line or other Python interpreter. Note that *simulate.py* does NOT have a command line interface, which is why we needed to directly edit the file as described in the section above.
 
 
-### Defining new demand distributions**
+### Defining new demand distributions
 TODO
 
 ## Contributors
