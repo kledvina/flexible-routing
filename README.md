@@ -52,7 +52,7 @@ So for a simulation with problem sizes [5,10,20,40,80], cust_sims of 30, and dem
 
 Finally, "scenario" is (1) the label assigned to all rows of output data and (2) a flag for the customer demand distribution. By default, all predefined scenarios *and newly defined scenarios* will draw each customer's demands uniformly from 0, 1, ..., 8 except for the preexisting Binomial Demand scenario and the Stochastic Demand scenario. See the section below on defining new demand distributions if you wish to create a scenario with a demand distribution other than the baseline's Uniform{0,8}.
 
-**Edit the *simulate* arguments as desired.** Then scroll to the bottom of the file and update the code block
+**Edit the *simulate()* arguments as desired.** Then scroll to the bottom of the file and update the code block
     
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
     outfile = 'output/results_{}.xlsx'.format(timestamp)
@@ -60,7 +60,7 @@ Finally, "scenario" is (1) the label assigned to all rows of output data and (2)
         results.to_excel(writer, sheet_name = 'baseline')
         [...]
 
-with your desired output file path and Excel sheet names. The output is an Excel workbook with a sheet containing **average** transportation costs and trip counts for the dedicated, overlapped, full flexibility, and reoptimizatiton strategies across all instances for each problem size. We also save the standard deviation, 5th percentile, and 95th percentile outcomes as separate sheets in this workbook. The output file name includes the simulation's completetion time.
+with your desired output file path and Excel sheet names. The output is an Excel workbook with a sheet containing **average** transportation costs and trip counts for the dedicated, overlapped, full flexibility, and reoptimizatiton strategies across all instances for each problem size. We also save the standard deviation, 5th percentile, and 95th percentile outcomes as separate sheets in this workbook. The output file name includes the simulation's completion time.
 
 **Save and close *simulate.py*.**
 
@@ -68,7 +68,31 @@ You can now run *simulate.py* from the command line or other Python interpreter.
 
 
 ### Defining new demand distributions
-TODO
+For any simulation run, each customer's demand by default follows a Uniform{0,8} distribution, i.e., is drawn from 0, 1, ..., 8 with equal probability. To define a simulation with a distribution OTHER THAN this default, follow the steps below:
+
+1. Open *simulate.py* and update or create a new line that calls the function *simulate()* as described above.  
+2. Choose a scenario label and set the "scenario" argument in the *simulate()* call equal to this name.  
+3. Save and close *simulate.py*.  
+4. Open *supporting.py* and find the function *create_instances()*. The function should be around line 446.  
+5. The function create_instances() contatains two inner functions: *gen_new_instances()* and *update_demands()*. You will need to make the same change in both of these inner functions.  
+6. In *gen_new_instance()*, find the following code block
+
+        # Generate demands depending on scenario
+        if scenario == 'stochastic_customers':
+            # Equal probability of selecting 0 or 8
+            new_dems = list(np.random.choice([0,8], num_cust))
+        elif scenario == 'binomial':
+            # Binomial(8,0.5) distribution
+            new_dems = list(np.random.binomial(8, 0.5, num_cust))
+        else:
+            # Uniformly distributed between 0 and 8
+            new_dems = list(np.random.randint(0, 8, num_cust))
+
+and update as needed so that if "scenario" equals your scenario label from step 2, "new_dems" is set to a list of numbers (integers or floats) of length "num_cust".  
+7. Make the same change to the identical code block in function *update_demands()*.  
+8. Save and close *supporting.py*.
+
+You can now run *simulate.py* with your new scenario.    
 
 ## Contributors
 
