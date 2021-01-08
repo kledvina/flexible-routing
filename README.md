@@ -28,25 +28,48 @@ Also, the Jupyter notebook *routing_examples.ipynb* is a supplemental file that 
 
 ## Running Simulations
 
-**Requirements**
-The simulation code runs with Python 3.7. You will need the pandas and numpy packages. You also need to install Google OR-Tools within your Python version by following [these instructions](https://developers.google.com/optimization/install).
+### Requirements
 
-**Running simulate.py**
+The simulation code runs with Python 3.7. You need the Pandas and Numpy packages. You also need to install Google OR-Tools within your Python version by following [these instructions](https://developers.google.com/optimization/install).
 
-To perform additional simulations, you will need to edit *simulate.py* to specify the scenario details as well as problem sizes and number of random instances to generate. A scenario defines several network parameters, namely primary route size, overlap size, vehicle capacity, and customer demand distribution. The code is set up to easily accomodate the following scenarios:
+### Running simulate.py
+
+First, you will need to edit *simulate.py* to specify the scenario details as well as problem sizes and number of random instances to generate. A scenario defines several network parameters, namely primary route size, overlap size, vehicle capacity, and customer demand distribution. The code is set up to easily accomodate the following scenarios:
 
 ![Scenarios](https://github.com/kledvina/flexible-routing/blob/master/figures/scenarios.png)
 
-For example, if you edit *simulate.py*, you will see the following line:
+For example, you can find the following line in *simulate.py*:
 
-TODO
+    results = simulate(scenario = 'baseline', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
 
-Comment, uncomment, and edit lines as applicable. If you wish to create a scenario other than one listed above, please refer to the section below on defining new scenarios. Save and close *simulate.py*.
+The function *simulate* takes in several arguments. The arguments "capacity", "route_size", and "overlap_size" are routing problem parameters that refer to vehicle capacity, number of customers in the primary route, and number of customers shared by adjacent extended routes, respectively. Please see the Jupyter notebook for an explanation of these terms. Then the following terms are simulation parameters:
+
+- "problem_sizes" - a list with all numbers of customers to loop through and simulate  
+- "cust_sims" - the number of random customer location instances to create
+- "dem_sims" - the number of random demand instances to assign to each customer instance
+
+So for a simulation with problem sizes [5,10,20,40,80], cust_sims of 30, and dem_sims of 200, we calculate routing costs for 600 unique customer/demand combinations for networks with 5 customers, another 600 unique customer/demand combinations for networks with 10 customers, and so on.
+
+Finally, "scenario" is (1) the label assigned to all rows of output data and (2) a flag for the customer demand distribution. By default, all predefined scenarios *and newly defined scenarios* will draw each customer's demands uniformly from 0, 1, ..., 8 except for the preexisting Binomial Demand scenario and the Stochastic Demand scenario. See the section below on defining new demand distributions if you wish to create a scenario with a demand distribution other than the baseline's Uniform{0,8}.
+
+The function *simulate* returns a Pandas DataFrame with rows corresponding to outputs for each simulated customer/demand instance. However, the code then processes the returned data to return the **average** (and other summary statistics) transportation costs and trip counts for the dedicated, overlapped, full flexibility, and reoptimizatiton strategies across all instances for each problem size.
+
+**Edit the *simulate* arguments as desired.** Then scroll to the bottom of the file and update the code block
+    
+    timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+    outfile = 'output/results_{}.xlsx'.format(timestamp)
+    with pd.ExcelWriter(outfile) as writer:
+        results.to_excel(writer, sheet_name = 'baseline')
+        [...]
+
+with your desired output file path and Excel sheet names. Currently, the output file name includes the simulation end timestamp.
+
+Save and close *simulate.py*.
 
 TODO. Note that simulate.py does NOT have a command line interface, which is why we needed to directly edit the file as described in the section above.
 
 
-**Defining new scenarios**
+### Defining new demand distributions**
 TODO
 
 ## Contributors
