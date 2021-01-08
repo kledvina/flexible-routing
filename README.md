@@ -52,8 +52,6 @@ So for a simulation with problem sizes [5,10,20,40,80], cust_sims of 30, and dem
 
 Finally, "scenario" is (1) the label assigned to all rows of output data and (2) a flag for the customer demand distribution. By default, all predefined scenarios *and newly defined scenarios* will draw each customer's demands uniformly from 0, 1, ..., 8 except for the preexisting Binomial Demand scenario and the Stochastic Demand scenario. See the section below on defining new demand distributions if you wish to create a scenario with a demand distribution other than the baseline's Uniform{0,8}.
 
-The function *simulate* returns a Pandas DataFrame with rows corresponding to outputs for each simulated customer/demand instance. However, the code then processes the returned data to return the **average** (and other summary statistics) transportation costs and trip counts for the dedicated, overlapped, full flexibility, and reoptimizatiton strategies across all instances for each problem size.
-
 **Edit the *simulate* arguments as desired.** Then scroll to the bottom of the file and update the code block
     
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
@@ -62,11 +60,11 @@ The function *simulate* returns a Pandas DataFrame with rows corresponding to ou
         results.to_excel(writer, sheet_name = 'baseline')
         [...]
 
-with your desired output file path and Excel sheet names. Currently, the output file name includes the simulation end timestamp.
+with your desired output file path and Excel sheet names. The output is an Excel workbook with a sheet containing **average** transportation costs and trip counts for the dedicated, overlapped, full flexibility, and reoptimizatiton strategies across all instances for each problem size. We also save the standard deviation, 5th percentile, and 95th percentile outcomes as separate sheets in this workbook. The output file name includes the simulation's completetion time.
 
 Save and close *simulate.py*.
 
-TODO. Note that simulate.py does NOT have a command line interface, which is why we needed to directly edit the file as described in the section above.
+You can now run the file as is from the command line or other Python interpreter. Note that simulate.py does NOT have a command line interface, which is why we needed to directly edit the file as described in the section above.
 
 
 ### Defining new demand distributions**
