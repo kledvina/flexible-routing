@@ -34,7 +34,7 @@ The simulation code runs with Python 3.7. You need the Pandas and Numpy packages
 
 ### Running simulate.py
 
-First, you will need to edit *simulate.py* to specify the scenario details as well as problem sizes and number of random instances to generate. A scenario defines several network parameters, namely primary route size, overlap size, vehicle capacity, and customer demand distribution. The code is set up to easily accomodate the following scenarios:
+You will need to edit *simulate.py* directly to specify the scenario details as well as problem sizes and number of random instances to generate. A **scenario** defines several network parameters, namely primary route size, overlap size, vehicle capacity, and customer demand distribution. The code is set up to easily accomodate the following scenarios:
 
 ![Scenarios](https://github.com/kledvina/flexible-routing/blob/master/figures/scenarios.png)
 
@@ -62,9 +62,9 @@ Finally, "scenario" is (1) the label assigned to all rows of output data and (2)
 
 with your desired output file path and Excel sheet names. The output is an Excel workbook with a sheet containing **average** transportation costs and trip counts for the dedicated, overlapped, full flexibility, and reoptimizatiton strategies across all instances for each problem size. We also save the standard deviation, 5th percentile, and 95th percentile outcomes as separate sheets in this workbook. The output file name includes the simulation's completetion time.
 
-Save and close *simulate.py*.
+**Save and close *simulate.py*.**
 
-You can now run the file as is from the command line or other Python interpreter. Note that simulate.py does NOT have a command line interface, which is why we needed to directly edit the file as described in the section above.
+You can now run *simulate.py* from the command line or other Python interpreter. Note that *simulate.py* does NOT have a command line interface, which is why we needed to directly edit the file as described in the section above.
 
 
 ### Defining new demand distributions**
