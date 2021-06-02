@@ -398,6 +398,7 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
             excess[j] = min(capacity * np.ceil(float(workload[j]) / capacity) - workload[j], overlap_demands[j])
             demand_filled[j] = workload[j] + excess[j]
         remaining_surplus = excess[j]
+        demand_filled = [demand_filled[j] for j in range(len(primary_routes))] # aligned with the datatype in create_full_trips()
 
         i = 0
         while remaining_surplus > 0:
