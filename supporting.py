@@ -284,11 +284,9 @@ def get_primary_routes(inst, route_size):
 
 def get_extended_routes(inst, route_size, overlap_size):
     """Splits customer sequnce into segments of 'route_size + overlap_size' number of customers, where adjacent
-    segments SHARE overlap_size number of customers. Requires that (i) number of customers is evenly divisible by route_size
-    and (ii) overlap size is less than or equal to route_size."""
+    segments SHARE overlap_size number of customers. Requires that the number of customers is evenly divisible by route_size."""
 
     assert inst.size % route_size == 0, "The number of customers must be evenly divisible by primary route size."
-    assert overlap_size <= route_size, "Overlap size must be less than or equal to primary route size."
     tour = inst.tour[1:]
     routes = []
     for i in range(0, len(tour), route_size):
