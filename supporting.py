@@ -395,33 +395,22 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
         else:
             excess[j] = min(capacity * np.ceil(float(workload[j]) / capacity) - workload[j], overlap_demands[j])
             demand_filled[j] = workload[j] + excess[j]
-        remaining_surplus = excess[j]
-        demand_filled = [demand_filled[j] for j in range(len(primary_routes))] # aligned with the datatype in create_full_trips()
 
-        i = 0
-        while remaining_surplus > 0:
-            if i < len(overlapped_segments[j]):
-                # fill demand of next shared customer
-                # override default first and last customer if appropriate
-                remaining_surplus -= inst.demands[overlapped_segments[j][i]]
+        # find first customer for vehicle j
+        if workload[j] == primary_demands[j]:
+            first[j] = primary_routes[j][0] # vehicle j starts at the first customer in its primary route
+        elif workload[j] == 0:
+            first[j] = 0 # vehicle j does not leave depot
+        else:
+            primary_custdemands = np.asarray([inst.demands[cust] for cust in primary_routes[j]])
+            first[j] = np.where(primary_custdemands.cumsum() > excess[j-1])[0][0]
 
-                if remaining_surplus == 0:
-                    # set last customer
-                    last[j] = overlapped_segments[j][i]
-
-                    # set first customer for next route
-                    if i == len(overlapped_segments[j]) - 1 and overlap_size == route_size:
-                        # next vehicle does not need to leave depot
-                        first[j + 1] = 0  # next vehicle does not need to leave depot
-                    else:
-                        #
-                        first[j + 1] = primary_routes[j + 1][i + 1]
-
-                elif remaining_surplus < 0:
-                    # vehicles will split this customer
-                    last[j] = overlapped_segments[j][i]
-                    first[j + 1] = overlapped_segments[j][i]
-            i += 1
+        # find last customer for vehicle j
+        if workload[j] == 0:
+            last[j] = 0 # vehicle j does not leave depot
+        else:
+            overlap_custdemands = np.asarray([inst.demands[cust] for cust in overlapped_segments[j]])
+            last[j] = np.where(overlap_custdemands.cumsum() >= excess[j])[0][0]
 
     # Determine realized routes based on updated first and last customers
     realized_routes = []
