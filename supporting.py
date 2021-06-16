@@ -406,17 +406,23 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
                     last[j] = overlapped_segments[j][i]
 
                     # set first customer for next route
-                    if i == len(overlapped_segments[j]) - 1 and overlap_size == route_size:
-                        # next vehicle does not need to leave depot
-                        first[j + 1] = 0  # next vehicle does not need to leave depot
-                    else:
-                        #
-                        first[j + 1] = primary_routes[j + 1][i + 1]
+                    if j < len(primary_routes) - 1:
+                        if i >= len(primary_routes[j]) - 1:
+                            # next vehicle does not need to leave depot
+                            first[j + 1] = 0  # next vehicle does not need to leave depot
+                        else:
+                            #
+                            first[j + 1] = primary_routes[j + 1][i + 1]
 
                 elif remaining_surplus < 0:
                     # vehicles will split this customer
                     last[j] = overlapped_segments[j][i]
-                    first[j + 1] = overlapped_segments[j][i]
+                    if j < len(primary_routes) - 1:
+                        if i > len(primary_routes[j]) - 1:
+                            # next vehicle does not need to leave depot
+                            first[j + 1] = 0  # next vehicle does not need to leave depot
+                        else:
+                            first[j + 1] = overlapped_segments[j][i]  
             i += 1
 
     # Determine realized routes based on updated first and last customers
@@ -435,7 +441,10 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
         realized_routes.append(route)
 
     # Create full trips (i.e., segments) from realized routes
+<<<<<<< Updated upstream
     demand_filled = [workload[j] + excess[j] for j in range(len(primary_routes))]
+=======
+>>>>>>> Stashed changes
     segments = create_full_trips(inst, realized_routes, capacity, demand_filled)
 
     return segments
