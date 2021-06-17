@@ -359,6 +359,9 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
     """Implement's general k-overlapped routing algorithm. Returns list of realized vehicle routes. """
     assert type(primary_routes[0]) == list, "primary_routes must be a list of lists (routes)"
     assert type(extended_routes[0]) == list, "extended_routes must be a list of lists (routes)"
+    
+    if overlap_size == 0: # reduced to dedicated routing
+        return create_full_trips(inst,primary_routes,capacity)
 
     # Get overlapped segments (note that last route does not have any shared customers at the route's end)
     overlapped_segments = []
@@ -378,12 +381,11 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
 
     excess = np.zeros(len(primary_routes))  # surplus capacity for each vehicle (updated below)
     workload = np.zeros(len(primary_routes))  # demand in the primary route that must be filled by each vehicle (updated below)
-    demand_filled = np.zeros(len(primary_routes)) # demand ultimately filled by each vehicle (updated below)
+    demand_filled = [0 for j in range(len(primary_routes))] # demand ultimately filled by each vehicle (updated below)
     realized_routes = []
 
     # Loop through vehicles
     for j in range(len(primary_routes)):
-
         if j == 0:
             workload[j] = primary_demands[j]
         else:
@@ -396,8 +398,7 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
             excess[j] = min(capacity * np.ceil(float(workload[j]) / capacity) - workload[j], overlap_demands[j])
             demand_filled[j] = workload[j] + excess[j]
         remaining_surplus = excess[j]
-        demand_filled = [demand_filled[j] for j in range(len(primary_routes))] # aligned with the datatype in create_full_trips()
-
+  
         i = 0
         while remaining_surplus > 0:
             if i < len(overlapped_segments[j]):
@@ -410,19 +411,25 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
                     last[j] = overlapped_segments[j][i]
 
                     # set first customer for next route
-                    if i == len(overlapped_segments[j]) - 1 and overlap_size == route_size:
-                        # next vehicle does not need to leave depot
-                        first[j + 1] = 0  # next vehicle does not need to leave depot
-                    else:
-                        #
-                        first[j + 1] = primary_routes[j + 1][i + 1]
+                    if j < len(primary_routes) - 1: # exclude the last vehicle
+                        if i >= len(primary_routes[j]) - 1:
+                            # next vehicle does not need to leave depot
+                            first[j + 1] = 0  # next vehicle does not need to leave depot
+                        else:
+                            #
+                            first[j + 1] = primary_routes[j + 1][i + 1]
 
                 elif remaining_surplus < 0:
                     # vehicles will split this customer
                     last[j] = overlapped_segments[j][i]
-                    first[j + 1] = overlapped_segments[j][i]
+                    if j < len(primary_routes) - 1:
+                        if i > len(primary_routes[j]) - 1:
+                            # next vehicle does not need to leave depot
+                            first[j + 1] = 0  # next vehicle does not need to leave depot
+                        else:
+                            first[j + 1] = overlapped_segments[j][i]  
             i += 1
-
+        
     # Determine realized routes based on updated first and last customers
     realized_routes = []
     for j in range(len(primary_routes)):
@@ -439,7 +446,6 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
         realized_routes.append(route)
 
     # Create full trips (i.e., segments) from realized routes
-
     segments = create_full_trips(inst, realized_routes, capacity, demand_filled)
 
     return segments
