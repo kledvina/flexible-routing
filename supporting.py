@@ -381,7 +381,7 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
 
     excess = np.zeros(len(primary_routes))  # surplus capacity for each vehicle (updated below)
     workload = np.zeros(len(primary_routes))  # demand in the primary route that must be filled by each vehicle (updated below)
-    demand_filled = np.zeros(len(primary_routes)) # demand ultimately filled by each vehicle (updated below)
+    demand_filled = [0 for j in range(len(primary_routes))] # demand ultimately filled by each vehicle (updated below)
     realized_routes = []
 
     # Loop through vehicles
@@ -429,9 +429,7 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
                         else:
                             first[j + 1] = overlapped_segments[j][i]  
             i += 1
-    
-    demand_filled = [demand_filled[j] for j in range(len(primary_routes))] # aligned with the datatype in create_full_trips()
-    
+        
     # Determine realized routes based on updated first and last customers
     realized_routes = []
     for j in range(len(primary_routes)):
