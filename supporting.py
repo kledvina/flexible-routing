@@ -451,6 +451,48 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
     return segments
 
 
+def implement_k_overlapped_alg_closed(demand_instance, primary_routes, extended_routes, capacity, route_size, overlap_size):
+    """Closed chain implemetation for flexible routing"""
+
+    # Get customer instance
+    inst = demand_instance
+    tour = inst.tour
+    # Set current tour and cumulative cost over all demand instances as best so far
+    # Note: cumulative cost yields same tour ranking as average cost across demand instances
+    best_routes = extended_routes
+    segments = implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, route_size, overlap_size)
+    lowest_cumul_cost = sum(get_total_cost(inst, seg) for seg in segments)
+    #print('Initial Routes: {}, Cost: {}'.format(best_routes, lowest_cumul_cost.round(2)))
+
+    # Copy of tour (for rotating below)
+    
+    primary_routes_to_rotate = primary_routes
+    extended_routes_to_rotate = extended_routes
+
+    # Loop over all customers
+    for c in range(len(primary_routes)-1):
+
+        # Rotate primary and extended routes
+        tour = tour[0:1] + tour[route_size+1:] + tour[1:route_size+1]
+        inst.update_tour(tour)
+        primary_routes_to_rotate = get_primary_routes(inst, route_size)
+        extended_routes_to_rotate = get_extended_routes(inst, route_size, overlap_size)
+        tour_cost = 0
+        
+        # Get cumulative cost over all demand instances
+        segments = implement_k_overlapped_alg(inst, primary_routes_to_rotate, extended_routes_to_rotate, capacity, route_size,
+                                                overlap_size)
+        for seg in segments:
+            tour_cost += get_total_cost(inst, seg)
+        #print('Candidate Routes: {}, Cost: {}'.format(extended_routes_to_rotate, tour_cost.round(2)))
+        if tour_cost < lowest_cumul_cost:
+            # Set as new best routes and cost
+            best_routes = extended_routes_to_rotate
+            lowest_cumul_cost = tour_cost
+            #print('--> NEW BEST ROUTES: {}, COST: {}'.format(extended_routes_to_rotate, lowest_cumul_cost.round(2)))
+    
+    return segments
+
 #---------------------------------------------------------------------------------
 
 def create_instances(scenario, num_cust, cust_sims, dem_sims):
