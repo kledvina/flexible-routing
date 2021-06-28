@@ -27,7 +27,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 
     # Start timers
     start = time.time()
-    pt, dt, ot, ft, rt, st = 0, 0, 0, 0, 0, 0
+    pt, dt, ot, ct, ft, rt, st = 0, 0, 0, 0, 0, 0, 0
 
     # Create timestamp for backup outputs
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
@@ -92,6 +92,15 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     new_rows = create_report(inst, scenario, 'overlapped', segments)
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     ot += time.time() - new_ot
+                    
+                    # Solve overlapped routing (closed)
+                    new_ct = time.time()
+                    primary_routes = get_primary_routes(inst, route_size)
+                    extended_routes = get_extended_routes(inst, route_size, overlap_size)
+                    segments = implement_k_overlapped_alg_closed(inst, primary_routes, extended_routes, capacity, route_size, overlap_size)
+                    new_rows = create_report(inst, scenario, 'overlapped closed', segments)
+                    sim_results = sim_results.append(new_rows, ignore_index=True)
+                    ct += time.time() - new_ct
 
                     # Solve fully flexible routing
                     new_ft = time.time()
@@ -132,6 +141,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
     print('Setup: {:.2f} min'.format(pt/60))
     print('Dedicated: {:.2f} min'.format(dt/60))
     print('Overlapped: {:.2f} min'.format(ot/60))
+    print('Overlapped Closed: {:.2f} min'.format(ct/60))
     print('Full Flex.: {:.2f} min'.format(ft/60))
     print('Reoptimization: {:.2f} min'.format(rt/60))
     print('Saving: {:.2f} min'.format(st/60))
@@ -147,7 +157,7 @@ if __name__ == "__main__":
     # Demand uniformly distributed in [0,8]
     # Route size: 5
     # Overlap size: 5
-    results = simulate(scenario = 'baseline', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
+    results = simulate(scenario = 'baseline', problem_sizes = [5,10], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
 
     # --- Baseline k=3 simulation ---
     # Demand uniformly distributed in [0,8]
