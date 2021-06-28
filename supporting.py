@@ -459,9 +459,8 @@ def implement_k_overlapped_alg_closed(demand_instance, primary_routes, extended_
     tour = inst.tour
     # Set current tour and cumulative cost over all demand instances as best so far
     # Note: cumulative cost yields same tour ranking as average cost across demand instances
-    best_routes = extended_routes
-    segments = implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, route_size, overlap_size)
-    lowest_cumul_cost = sum(get_total_cost(inst, seg) for seg in segments)
+    best_segments = implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, route_size, overlap_size)
+    lowest_cumul_cost = sum(get_total_cost(inst, seg) for seg in best_segments)
     #print('Initial Routes: {}, Cost: {}'.format(best_routes, lowest_cumul_cost.round(2)))
 
     # Copy of tour (for rotating below)
@@ -487,11 +486,11 @@ def implement_k_overlapped_alg_closed(demand_instance, primary_routes, extended_
         #print('Candidate Routes: {}, Cost: {}'.format(extended_routes_to_rotate, tour_cost.round(2)))
         if tour_cost < lowest_cumul_cost:
             # Set as new best routes and cost
-            best_routes = extended_routes_to_rotate
+            best_segments = segments
             lowest_cumul_cost = tour_cost
             #print('--> NEW BEST ROUTES: {}, COST: {}'.format(extended_routes_to_rotate, lowest_cumul_cost.round(2)))
     
-    return segments
+    return best_segments
 
 #---------------------------------------------------------------------------------
 
