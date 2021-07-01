@@ -58,14 +58,14 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
         instances = create_instances(scenario, num_cust, cust_sims, dem_sims)
 
         # Find cost minimizing starting customer / tour sequence for each set of customer locations
-        #print('Finding best tour across demand sets')
-        #for row in instances:
-        #    inst = row[0]  # customer instance
-        #    primary_routes = get_primary_routes(inst, route_size)
-        #    extended_routes = get_extended_routes(inst, route_size, overlap_size)
+        print('Finding best tour across demand sets')
+        for row in instances:
+            inst = row[0]  # customer instance
+            primary_routes = get_primary_routes(inst, route_size)
+            extended_routes = get_extended_routes(inst, route_size, overlap_size)
             # set average cost-minimizing tour
-        #    set_best_tours(row, primary_routes, extended_routes, capacity, route_size, overlap_size)
-        #pt += time.time() - new_pt
+            set_best_tours(row, primary_routes, extended_routes, capacity, route_size, overlap_size)
+        pt += time.time() - new_pt
 
         # Loop through instances and find instance cost for different strategies
 
@@ -75,9 +75,6 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                 # Get instance from array
                 inst = instances[i][j]
                 
-                primary_routes_default = get_primary_routes(inst, route_size)
-                extended_routes_default = get_extended_routes(inst, route_size, overlap_size)
-                set_best_tour(inst, primary_routes_default, extended_routes_default, capacity, route_size, overlap_size)
 
                 try:
                     # Solve dedicated routing
@@ -97,13 +94,14 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     ot += time.time() - new_ot
                     
+                    
                     # Solve fully flexible routing
                     new_ft = time.time()
                     segments = create_full_trips(inst, [inst.tour[1:]], capacity)
                     new_rows = create_report(inst, scenario, 'fully flexible', segments)
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     ft += time.time() - new_ft
-
+                    
                     # Solve overlapped routing (closed)
                     new_ct = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
@@ -112,16 +110,16 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     new_rows = create_report(inst, scenario, 'overlapped closed', segments)
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     ct += time.time() - new_ct
+
                     
                     # Solve fully flexible routing (closed)
                     new_fct = time.time()
+                    primary_routes = get_primary_routes(inst, route_size)
                     extended_routes = get_extended_routes(inst, route_size, inst.size)
                     segments = implement_k_overlapped_alg_closed(inst, primary_routes, extended_routes, capacity, route_size, inst.size)
                     new_rows = create_report(inst, scenario, 'fully flexible closed', segments)
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     fct += time.time() - new_fct
-                    
-
 
                     # Solve reoptimization
                     new_rt = time.time()

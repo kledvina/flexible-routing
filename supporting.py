@@ -595,37 +595,5 @@ def set_best_tours(demand_instances, primary_routes, extended_routes, capacity, 
         inst.update_tour(best_tour)
     return
 
-def set_best_tour(demand_instance, primary_routes, extended_routes, capacity, route_size, overlap_size):
-    """Updates the tour of all instances to the sequence that minimizes the average cost of the routes over all demand instances.
-    Assumes all instances in list demand_instances have identical customer locations."""
 
-    # Get any customer instance
-    inst = demand_instance
-    # Set current tour and cumulative cost over all demand instances as best so far
-    # Note: cumulative cost yields same tour ranking as average cost across demand instances
-    best_tour = inst.tour
-    segments = implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, route_size, overlap_size)
-    lowest_cumul_cost = sum([get_total_cost(inst, seg) for seg in segments])
-
-    # Copy of tour (for rotating below)
-    tour = inst.tour
-
-    # Rotate tour by one customer (keeps depot at very first spot)
-    tour = tour[0:1] + tour[2:] + tour[1:2]
-    inst.update_tour(tour)
-    tour_cost = 0
-
-    segments = implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, route_size,
-                                                  overlap_size)
-    for seg in segments:
-        tour_cost += get_total_cost(inst, seg)
-
-        # Set new best tour if lower cost
-    if tour_cost < lowest_cumul_cost:
-        best_tour = tour
-        lowest_cumul_cost = tour_cost
-
-    # Update tour 
-    inst.update_tour(best_tour)
-    return
 
