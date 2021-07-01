@@ -285,48 +285,49 @@ def get_primary_routes(inst, route_size):
 def get_extended_routes(inst, route_size, overlap_size):
     """Splits customer sequnce into segments of 'route_size + overlap_size' number of customers, where adjacent
     segments SHARE overlap_size number of customers. Requires that the number of customers is evenly divisible by route_size."""
-
-    assert inst.size % route_size == 0, "The number of customers must be evenly divisible by primary route size."
+    
+    assert inst.size%route_size == 0, "The number of customers must be evenly divisible by primary route size."
     tour = inst.tour[1:]
     routes = []
-    for i in range(0, len(tour), route_size):
-        new_route = tour[i:i + route_size + overlap_size] # note: subsetting for the last route ends with final customer
+    for i in range(0,len(tour),route_size):
+        new_route = tour[i:i+route_size+overlap_size] # note: for the last route, subsetting ends with final customer
         routes.append(new_route)
     return routes
 
 
 #---------------------------------------------------------------------------------
 
-def create_full_trips(inst, route_list, capacity, demand_filled=None):
+def create_full_trips(inst, route_list, capacity, demand_filled = None):
     """Splits a sequence of customers into individual trips. Returns a list of lists."""
-
-    assert type(route_list[0]) == list, "route_list must be a list of lists (routes)"
+    
+    assert type(route_list[0]) == list, "route_list must be a list of lists (routes)."
 
     # Dictionary for tracking remaining demand filled at all customers
-    remaining_demand = dict([(inst.tour[i], inst.demands[inst.tour[i]]) for i in range(1, len(inst.tour))])
+    remaining_demand = dict([(inst.tour[i],inst.demands[inst.tour[i]]) for i in range(1,len(inst.tour))])
 
     segments = []
     for m in range(len(route_list)):
         i = 0
-        seg_dict = {}  # demand filled on current trip
-        vehicle_dict = dict(
-            [(inst.tour[i], 0) for i in range(1, len(inst.tour))])  # total demand filled by vehicle on this route
+        seg_dict = {} # demand filled on current trip
+        vehicle_dict = dict([(inst.tour[i],0) for i in range(1,len(inst.tour))]) # total demand filled by vehicle on this route
         while i < len(route_list[m]):
             cust = route_list[m][i]
             for d in range(inst.demands[cust]):
-
+                #print(dict([(c,vehicle_dict[c]) for c in vehicle_dict if vehicle_dict[c]!=0]))
+                #print(dict([(c,seg_dict[c]) for c in seg_dict if seg_dict[c]!=0]))
+                
                 if demand_filled != None and sum(vehicle_dict.values()) == demand_filled[m]:
                     # Route's vehicle achieved its predetermined workload (if applicable)
                     # Force to end this route and move to next
                     i = len(route_list[m])
                     break
-
+                    
                 elif sum(remaining_demand[c] for c in route_list[m]) == 0:
                     # Route is completed
                     # Force to end this route and move to next
                     i = len(route_list[m])
                     break
-
+                
                 elif sum(seg_dict.values()) == capacity:
                     # Vehicle is at capacity
                     # End current trip, and begin a new trip within this route
@@ -334,19 +335,19 @@ def create_full_trips(inst, route_list, capacity, demand_filled=None):
                     seg_dict = {cust: 1}
                     vehicle_dict[cust] += 1
                     remaining_demand[cust] -= 1
-
+                    
                 elif remaining_demand[cust] > 0:
                     if cust not in seg_dict:
                         # Begin service
-                        seg_dict[cust] = 1
+                        seg_dict[cust] = 1 
                     else:
                         # Continue service
                         seg_dict[cust] += 1
                     vehicle_dict[cust] += 1
                     remaining_demand[cust] -= 1
-
-            i += 1  # Moves to next customer
-
+                
+            i+=1 # Moves to next customer
+        
         # Append route's last segment
         segments.append(list(seg_dict))
 
@@ -593,3 +594,38 @@ def set_best_tours(demand_instances, primary_routes, extended_routes, capacity, 
     for inst in demand_instances:
         inst.update_tour(best_tour)
     return
+
+def set_best_tour(demand_instance, primary_routes, extended_routes, capacity, route_size, overlap_size):
+    """Updates the tour of all instances to the sequence that minimizes the average cost of the routes over all demand instances.
+    Assumes all instances in list demand_instances have identical customer locations."""
+
+    # Get any customer instance
+    inst = demand_instance
+    # Set current tour and cumulative cost over all demand instances as best so far
+    # Note: cumulative cost yields same tour ranking as average cost across demand instances
+    best_tour = inst.tour
+    segments = implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, route_size, overlap_size)
+    lowest_cumul_cost = sum([get_total_cost(inst, seg) for seg in segments])
+
+    # Copy of tour (for rotating below)
+    tour = inst.tour
+
+    # Rotate tour by one customer (keeps depot at very first spot)
+    tour = tour[0:1] + tour[2:] + tour[1:2]
+    inst.update_tour(tour)
+    tour_cost = 0
+
+    segments = implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, route_size,
+                                                  overlap_size)
+    for seg in segments:
+        tour_cost += get_total_cost(inst, seg)
+
+        # Set new best tour if lower cost
+    if tour_cost < lowest_cumul_cost:
+        best_tour = tour
+        lowest_cumul_cost = tour_cost
+
+    # Update tour 
+    inst.update_tour(best_tour)
+    return
+
