@@ -5,8 +5,8 @@ from supporting import *
 # GLOBAL VARIABLES
 field_width = 100 # Customer location has x-coordinate in (0, field_width)
 field_height = 100 # Customer location has y-coordinate in (0, field_height)
-depot_x = 50 # Depot x-coordinate
-depot_y = 50 # Depot y-coordinate
+#depot_x = 50 # Depot x-coordinate
+#depot_y = 50 # Depot y-coordinate
 
 
 #---------------------------------------------------------------------------------
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     # Demand uniformly distributed in [0,8]
     # Route size: 5
     # Overlap size: 5
-    results = simulate(scenario = 'baseline', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 30, dem_sims = 200)
+    results = simulate(scenario = 'baseline', problem_sizes = [5,10,20,40,80], capacity = 20, route_size = 5, overlap_size = 5, cust_sims = 10, dem_sims = 1000)
 
     # --- Baseline k=3 simulation ---
     # Demand uniformly distributed in [0,8]

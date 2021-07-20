@@ -6,8 +6,8 @@ from ortools.constraint_solver import pywrapcp
 # GLOBAL VARIABLES
 field_width = 100 # Customer location has x-coordinate in (0, field_width)
 field_height = 100 # Customer location has y-coordinate in (0, field_height)
-depot_x = 50 # Depot x-coordinate
-depot_y = 50 # Depot y-coordinate
+#depot_x = 50 # Depot x-coordinate
+#depot_y = 50 # Depot y-coordinate
 
 #---------------------------------------------------------------------------------
 
@@ -239,10 +239,10 @@ def optimize(inst, capacity):
 def solve_SDVRP(inst, capacity):
     """Creates equivalent demand/location instance with unit demand and solves the VRP with splittable demands"""
     # Create equivalent instance with unit demand customers
-    split_xlocs = [[depot_x]] + [[inst.xlocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
+    split_xlocs = [[inst.xlocs[0]]] + [[inst.xlocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
     split_xlocs = [v for sublist in split_xlocs for v in sublist]
 
-    split_ylocs = [[depot_y]] + [[inst.ylocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
+    split_ylocs = [[inst.xlocs[0]]] + [[inst.ylocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
     split_ylocs = [v for sublist in split_ylocs for v in sublist]
 
     split_demands = [[0]] + [[1] * inst.demands[i] for i in range(1, len(inst.demands))]
@@ -501,6 +501,9 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
     np.random.seed(1)
 
     def gen_new_instance(num_cust, scenario):
+        # Randomly generate depot locations
+        depot_x = field_width * np.random.random(1)[0] # Depot x-coordinate
+        depot_y = field_height * np.random.random(1)[0] # Depot y-coordinate
 
         # Generate customer locations
         new_xlocs = field_width * np.random.random(num_cust)  # x coordinates of all customers
