@@ -275,7 +275,7 @@ def get_primary_routes(inst, route_size):
     tour = inst.tour[1:]  # Exclude depot
     routes = []
     for i in range(0, len(tour), route_size):
-        new_route = tour[i:i + route_size]
+        new_route = tour[i:min(i+route_size,len(tour))]
         routes.append(new_route)
     return routes
 
@@ -290,7 +290,7 @@ def get_extended_routes(inst, route_size, overlap_size):
     tour = inst.tour[1:]
     routes = []
     for i in range(0,len(tour),route_size):
-        new_route = tour[i:i+route_size+overlap_size] # note: for the last route, subsetting ends with final customer
+        new_route = tour[i:min(i+route_size+overlap_size, inst.size)] # note: for the last route, subsetting ends with final customer
         routes.append(new_route)
     return routes
 
@@ -390,7 +390,7 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
         if j == 0:
             workload[j] = primary_demands[j]
         else:
-            workload[j] = max(0, primary_demands[j] - excess[j - 1])
+            workload[j] = max(0, primary_demands[j] - excess[j-1])
 
         if workload[j] == 0:
             excess[j] = excess[j-1] - primary_demands[j]
@@ -398,39 +398,41 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
         else:
             excess[j] = min(capacity * np.ceil(float(workload[j]) / capacity) - workload[j], overlap_demands[j])
             demand_filled[j] = workload[j] + excess[j]
-        remaining_surplus = excess[j]
-  
+        
+        remaining_surplus = 0
+        if j == 0:
+            first[j] = primary_routes[0][0]
+        else:
+            remaining_surplus = excess[j-1]
         i = 0
         while remaining_surplus > 0:
-            if i < len(overlapped_segments[j]):
+            remaining_surplus -= inst.demands[primary_routes[j][i]]
+            if remaining_surplus < 0:
+                first[j] = primary_routes[j][i]
+            elif remaining_surplus == 0 and i < len(primary_routes[j]) - 1:
+                first[j] = primary_routes[j][i+1]
+            elif i == len(primary_routes[j]) - 1:
+                first[j] = 0
+                last[j] = 0
+                break
+            i += 1    
+        
+        if j < len(primary_routes) - 1:
+            remaining_surplus = excess[j]
+            i = 0
+            while remaining_surplus > 0:
                 # fill demand of next shared customer
                 # override default first and last customer if appropriate
                 remaining_surplus -= inst.demands[overlapped_segments[j][i]]
-
-                if remaining_surplus == 0:
+                 
+                if remaining_surplus <= 0:
                     # set last customer
                     last[j] = overlapped_segments[j][i]
-
-                    # set first customer for next route
-                    if j < len(primary_routes) - 1: # exclude the last vehicle
-                        if i >= len(primary_routes[j]) - 1:
-                            # next vehicle does not need to leave depot
-                            first[j + 1] = 0  # next vehicle does not need to leave depot
-                        else:
-                            #
-                            first[j + 1] = primary_routes[j + 1][i + 1]
-
-                elif remaining_surplus < 0:
-                    # vehicles will split this customer
+                elif remaining_surplus > 0 and i == len(overlapped_segments[j]) - 1:
                     last[j] = overlapped_segments[j][i]
-                    if j < len(primary_routes) - 1:
-                        if i > len(primary_routes[j]) - 1:
-                            # next vehicle does not need to leave depot
-                            first[j + 1] = 0  # next vehicle does not need to leave depot
-                        else:
-                            first[j + 1] = overlapped_segments[j][i]  
-            i += 1
-        
+                    break
+                i += 1
+    
     # Determine realized routes based on updated first and last customers
     realized_routes = []
     for j in range(len(primary_routes)):
@@ -469,7 +471,7 @@ def implement_k_overlapped_alg_closed(demand_instance, primary_routes, extended_
     primary_routes_to_rotate = primary_routes
     extended_routes_to_rotate = extended_routes
 
-    # Loop over all customers
+    # Loop over all vehicles
     for c in range(len(primary_routes)-1):
 
         # Rotate primary and extended routes
