@@ -1,6 +1,7 @@
 import pandas as pd
 import time
 from supporting import *
+from copy import deepcopy
 
 # GLOBAL VARIABLES
 field_width = 100 # Customer location has x-coordinate in (0, field_width)
@@ -73,11 +74,12 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
             for j in range(dem_sims):
 
                 # Get instance from array
-                inst = instances[i][j]
+                inst_copy = deepcopy(instances[i][j])
                 
 
                 try:
                     # Solve dedicated routing
+                    inst = deepcopy(inst_copy)
                     new_dt = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
                     segments = create_full_trips(inst, primary_routes, capacity)
@@ -86,6 +88,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     dt += time.time() - new_dt
 
                     # Solve overlapped routing
+                    inst = deepcopy(inst_copy)
                     new_ot = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
                     extended_routes = get_extended_routes(inst, route_size, overlap_size)
@@ -96,6 +99,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     
                     
                     # Solve fully flexible routing
+                    inst = deepcopy(inst_copy)
                     new_ft = time.time()
                     segments = create_full_trips(inst, [inst.tour[1:]], capacity)
                     new_rows = create_report(inst, scenario, 'fully flexible', segments)
@@ -103,6 +107,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     ft += time.time() - new_ft
                     
                     # Solve overlapped routing (closed)
+                    inst = deepcopy(inst_copy)
                     new_ct = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
                     extended_routes = get_extended_routes(inst, route_size, overlap_size)
@@ -113,6 +118,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 
                     
                     # Solve fully flexible routing (closed)
+                    inst = deepcopy(inst_copy)
                     new_fct = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
                     extended_routes = get_extended_routes(inst, route_size, inst.size)
@@ -122,6 +128,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     fct += time.time() - new_fct
 
                     # Solve reoptimization
+                    inst = deepcopy(inst_copy)
                     new_rt = time.time()
                     segments = solve_SDVRP(inst, capacity)
                     new_rows = create_report(inst, scenario, 'reoptimization', segments)
