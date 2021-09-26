@@ -19,14 +19,16 @@ num_sims <- 6000 # As set in Python simulation code
 #---------- Dataset Preparation ----------#
 
 # Get simulation output files
-files <- list.files('output', pattern = '.xlsx')
+#files <- list.files('output', pattern = '.xlsx')
 
 # Import and combine datasets with individual runs
-sims <- data.frame()
-for (i  in 1:length(files)){
-   df <- read_xlsx(paste('output/', files[i], sep = ''), sheet = 1)
-   sims <- rbind(sims, df)
-}
+#sims <- data.frame()
+#for (i  in 1:length(files)){
+#   df <- read_xlsx(paste('output/', files[i], sep = ''), sheet = 1)
+#   sims <- rbind(sims, df)
+#}
+
+sims = read_xlsx('output/results_2021-08-31_16-24-47.xlsx', sheet=1)
 colnames(sims) = c('ID','Scenario','Customers','Strategy','Metric','Value')
 
 # Rename scenarios
