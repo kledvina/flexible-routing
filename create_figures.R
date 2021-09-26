@@ -9,10 +9,10 @@ library(readxl)
 library(RColorBrewer)
 theme_set(theme_bw())
 #theme_set(theme_bw(base_size = 22))
-theme_set(theme_bw(base_size = 14))
+theme_set(theme_bw(base_size = 11))
 
 setwd("~/Documents/flexible-routing") # Set to file directory
-outpath <- "figures/inc_full_flex/" # Set to relative location of folder for figures
+outpath <- "figures/" # Set to relative location of folder for figures
 num_sims <- 6000 # As set in Python simulation code
 
 
@@ -31,26 +31,25 @@ colnames(sims) = c('ID','Scenario','Customers','Strategy','Metric','Value')
 
 # Rename scenarios
 sims[(sims$Scenario == 'baseline'),]$Scenario = 'Baseline'
-sims[(sims$Scenario == 'baseline_k3'),]$Scenario = 'Medium Overlap'
-sims[(sims$Scenario == 'baseline_k1'),]$Scenario = 'Small Overlap'
-sims[(sims$Scenario == 'short_route'),]$Scenario = 'Short Route'
-sims[(sims$Scenario == 'long_route'),]$Scenario = 'Long Route'
-sims[(sims$Scenario == 'stochastic_customers'),]$Scenario = 'Stoch. Cust.'
-sims[(sims$Scenario == 'binomial'),]$Scenario = 'Bin. Demand'
-sims[(sims$Scenario == 'low_capacity'),]$Scenario = 'Low Capacity'
-sims[(sims$Scenario == 'high_capacity'),]$Scenario = 'High Capacity'
+#sims[(sims$Scenario == 'baseline_k3'),]$Scenario = 'Medium Overlap'
+#sims[(sims$Scenario == 'baseline_k1'),]$Scenario = 'Small Overlap'
+#sims[(sims$Scenario == 'short_route'),]$Scenario = 'Short Route'
+#sims[(sims$Scenario == 'long_route'),]$Scenario = 'Long Route'
+#sims[(sims$Scenario == 'stochastic_customers'),]$Scenario = 'Stoch. Cust.'
+#sims[(sims$Scenario == 'binomial'),]$Scenario = 'Bin. Demand'
+#sims[(sims$Scenario == 'low_capacity'),]$Scenario = 'Low Capacity'
+#sims[(sims$Scenario == 'high_capacity'),]$Scenario = 'High Capacity'
 
 # Rename and reorder routing strategies
 sims[(sims$Strategy == 'dedicated'),]$Strategy = 'Dedicated'
-sims[(sims$Strategy == 'overlapped'),]$Strategy = 'Overlapped'
+sims[(sims$Strategy == 'overlapped'),]$Strategy = 'AO'
+sims[(sims$Strategy == 'overlapped closed'),]$Strategy = 'AOC'
 sims[(sims$Strategy == 'reoptimization'),]$Strategy = 'Reoptimization'
-sims[(sims$Strategy == 'fully flexible'),]$Strategy = 'Full Flexibility'
+sims[(sims$Strategy == 'fully flexible'),]$Strategy = 'FO'
+sims[(sims$Strategy == 'fully flexible closed'),]$Strategy = 'FOC'
 
 sims$Strategy = factor(sims$Strategy,
-                       levels = c('Dedicated', 'Overlapped', 'Full Flexibility', 'Reoptimization'))
-
-# Drop full flexibility strategy (optional)
-#sims <- sims[!(sims$Strategy == 'Full Flexibility'),]
+                       levels = c('Dedicated', 'AO', 'FO', 'AOC', 'FOC', 'Reoptimization'))
 
 # Rename metrics
 sims[(sims$Metric == 'total cost'),]$Metric = 'Total Cost'
@@ -67,24 +66,21 @@ sims <- sims %>%
    ungroup()
 
 
-#---------- Baseline Graphs ----------#
+#---------- Baseline Graphs (Open Chain) ----------#
 # Total cost
 sims %>%
    filter(Scenario == 'Baseline',
-          Metric == 'Total Cost') %>%
+          Metric == 'Total Cost',
+          Strategy %in% c('Dedicated','AO','FO','Reoptimization')) %>%
    group_by(Customers, Strategy) %>%
    summarise(Value = mean(Value)) %>%
    ggplot() +
-   aes(x = Customers, y =  Value,
-       group = Strategy, color = Strategy,
+   aes(x = Customers, y =  Value, group = Strategy,
        linetype = Strategy, shape = Strategy) +
-   geom_line(size = 1) + geom_point(size = 2) +
+   geom_line(size = 0.5) + geom_point(size = 2) +
    expand_limits(y=0) +
    labs(x = 'Number of Customers', y = 'Cost') + 
-   scale_color_brewer(palette = "Dark2") +
    theme(aspect.ratio = 0.75)
-   #scale_color_grey(start = 0.3)
-
 ggsave(paste(outpath, 'total_cost.png', sep=''))
 
 
@@ -98,27 +94,27 @@ reopt <- sims %>%
 
 sims %>%
    filter(Scenario == "Baseline",
-          Metric == 'Total Cost') %>%
+          Metric == 'Total Cost',
+          Strategy %in% c('Dedicated','AO','FO','Reoptimization')) %>%
    merge(reopt) %>%
    group_by(Customers, Strategy) %>%
    summarise(Value = mean(Value)/mean(avg_reopt)) %>%
    ggplot() +
-   aes(x = Customers, y =  Value,
-       group = Strategy, color = Strategy,
+   aes(x = Customers, y =  Value, group = Strategy, 
        linetype = Strategy, shape = Strategy) +
-   geom_line(size = 1) + geom_point(size = 2) +
+   geom_line(size = 0.5) + geom_point(size = 2) +
    labs(x = 'Number of Customers', y = 'Cost (Rel. to Reoptimization)') + 
    expand_limits(y=0) +
    scale_color_brewer(palette = "Dark2") +
    theme(aspect.ratio = 0.75)
-   #scale_color_grey(start = 0.3)
-   
 ggsave(paste(outpath, 'rel_cost.png', sep=''))
 
 # Combined: Total & Relative to Reoptimization
 sims %>%
    filter(Scenario == "Baseline",
-          Metric == 'Total Cost') %>%
+          Metric == 'Total Cost',
+          Strategy %in% c('Dedicated','AO','FO','Reoptimization')) %>%
+   merge(reopt) %>%
    merge(reopt) %>%
    group_by(Customers, Strategy) %>%
    summarise(`Total Cost` = mean(Value),
@@ -126,24 +122,38 @@ sims %>%
    gather(Metric, Value, `Total Cost`, `Relative Cost`) %>%
    mutate(Metric = factor(Metric, levels = c("Total Cost", "Relative Cost"))) %>%
    ggplot() +
-   aes(x = Customers, y =  Value,
-       group = Strategy, color = Strategy,
+   aes(x = Customers, y =  Value, group = Strategy,
        linetype = Strategy, shape = Strategy) +
-   geom_line(size = 1) + geom_point(size = 2) +
+   geom_line(size = 0.5) + geom_point(size = 2) +
    labs(x = 'Number of Customers', y = 'Cost') + 
    expand_limits(y=0) +
    facet_wrap(Metric ~., scales = 'free') +
-   scale_color_brewer(palette = "Dark2") +
    theme(aspect.ratio = 1.25)
-
-#scale_color_grey(start = 0.3)
 ggsave(paste(outpath, 'combined_total_rel_cost.png', sep=''))
 
 
 # Circular and Radial Cost
 sims %>%
    filter(Scenario == 'Baseline',
-          Metric %in% c('Circular Cost', 'Radial Cost')) %>%
+          Metric %in% c('Circular Cost', 'Radial Cost'),
+          Strategy %in% c('Dedicated','AO','FO','Reoptimization')) %>%
+   group_by(Customers, Strategy, Metric) %>%
+   summarise(Value = mean(Value)) %>%
+   ggplot() +
+   aes(x = Customers, y =  Value, group = Strategy,
+       linetype = Strategy, shape = Strategy) +
+   geom_line(size = 0.5) + geom_point(size = 2) +
+   labs(x = 'Number of Customers', y = 'Cost') + 
+   facet_wrap(Metric ~., nrow=1) +
+   theme(aspect.ratio = 2) +
+   scale_fill_grey(start = 0.4) +
+   theme(aspect.ratio = 1.25)
+ggsave(paste(outpath, 'cost_breakdown.png', sep=''))
+
+sims %>%
+   filter(Scenario == 'Baseline',
+          Metric %in% c('Circular Cost', 'Radial Cost'),
+          Strategy %in% c('Dedicated','AO','FO','Reoptimization')) %>%
    group_by(Customers, Strategy, Metric) %>%
    summarise(Value = mean(Value)) %>%
    ggplot() +
@@ -151,18 +161,17 @@ sims %>%
        group = Metric, fill = Metric) +
    geom_area() +
    labs(x = 'Number of Customers', y = 'Cost') + 
-   facet_wrap(Strategy ~.) +
-   scale_fill_brewer(palette = "Dark2") +
-   theme(aspect.ratio = 1.25)
-   #scale_fill_grey(start = 0.4)
-
-ggsave(paste(outpath, 'cost_breakdown.png', sep=''))
+   facet_wrap(Strategy ~., nrow=1) +
+   theme(aspect.ratio = 2, legend.position = 'bottom', legend.title = element_blank()) +
+   scale_fill_grey(start = 0.4)
+ggsave(paste(outpath, 'cost_breakdown_area.png', sep=''))
 
 
 # Number of trips
 sims %>%
    filter(Scenario == 'Baseline',
-          Metric == 'Trip Count') %>%
+          Metric == 'Trip Count',
+          Strategy %in% c('Dedicated','AO','FO','Reoptimization')) %>%
    mutate(Customers = factor(Customers)) %>%
    group_by(Customers, Strategy) %>%
    summarise(Value = mean(Value)) %>%
@@ -170,11 +179,10 @@ sims %>%
    aes(x = Customers, y = Value, fill = Strategy) + 
    geom_bar(stat = 'identity', position = 'dodge') +
    labs(x = 'Number of Customers', y = 'Trip Count') + 
-   scale_fill_brewer(palette = "Dark2") +
-   theme(aspect.ratio = 0.75)
-   #scale_fill_grey(start = 0.3)
+   theme(aspect.ratio = 0.75) +
+   scale_fill_grey(start = 0.3)
 
-ggsave(paste(outpath, 'trips.png', sep=''))
+#ggsave(paste(outpath, 'trips.png', sep=''))
 
 
 # Distribution of individual runs' costs by strategy
@@ -190,30 +198,110 @@ sims %>%
 sims %>%
    filter(Scenario == 'Baseline',
           Customers %in% c(5,20,80),
-          Metric == 'Total Cost') %>%
+          Metric == 'Total Cost',
+          Strategy %in% c('Dedicated','AO','FO','Reoptimization')) %>%
    mutate(`Number of Customers` = factor(Customers)) %>%
    ggplot() +
    aes(x = Value, fill=`Number of Customers`) +
    geom_histogram(color='black', bins = 50) + 
    facet_grid(Strategy~.) +
    labs(x = 'Total Cost', y = 'Count') + 
-   scale_fill_brewer(palette = "Dark2") +
-   theme(aspect.ratio = 0.25, legend.position="top")
-   #scale_fill_grey(start = 0.3, end = 0.9)
+   theme(aspect.ratio = 0.25, legend.position="top") +
+   scale_fill_grey(start = 0.3, end = 0.9)
 
 ggsave(paste(outpath, 'hist_total.png', sep=''))
 
 
-# Percent of sims where overlapped did better than dedicated
+# Percent of sims where AO did better than dedicated
 sims %>%
    filter(Scenario == 'Baseline', Metric == 'Total Cost') %>%
    spread(Strategy, Value) %>%
    group_by(Scenario, Customers) %>%
-   summarise(`Lower Cost` = 100*sum(Overlapped < Dedicated) / num_sims,
-             `Equal Cost` = 100*sum(Overlapped == Dedicated) / num_sims,
-             `Higher Cost` = 100*sum(Overlapped > Dedicated) / num_sims)
+   summarise(`Lower Cost` = 100*sum(AO < Dedicated) / num_sims,
+             `Equal Cost` = 100*sum(AO == Dedicated) / num_sims,
+             `Higher Cost` = 100*sum(AO > Dedicated) / num_sims)
 
 
+
+
+#---------- Baseline Graphs (Closed Chain) ----------#
+
+# Total cost
+sims %>%
+   filter(Scenario == 'Baseline',
+          Metric == 'Total Cost',
+          Strategy %in% c('Dedicated','AO','AOC','FO','FOC','Reoptimization')) %>%
+   mutate(Customers= factor(Customers)) %>%
+   group_by(Customers, Strategy) %>%
+   summarise(Value = mean(Value)) %>%
+   ggplot() +
+   aes(x = Customers, y =  Value, fill = Strategy) +
+   geom_bar(stat = 'identity', position = 'dodge') +
+   expand_limits(y=0) +
+   labs(x = 'Number of Customers', y = 'Cost') + 
+   theme(aspect.ratio = 1) +
+   scale_fill_grey(start = 0.3)
+ggsave(paste(outpath, 'total_cost_CLOSED.png', sep=''))
+
+
+
+# Relative to Reoptimization -- LINE
+reopt <- sims %>%
+   filter(Scenario == "Baseline",
+          Metric == 'Total Cost',
+          Strategy == 'Reoptimization') %>%
+   group_by(Customers) %>%
+   summarise(avg_reopt = mean(Value))
+
+sims %>%
+   filter(Scenario == "Baseline",
+          Metric == 'Total Cost',
+          Strategy %in% c('AO','FO','AOC','FOC')) %>%
+   merge(reopt) %>%
+   mutate(Customers= factor(Customers)) %>%
+   group_by(Customers, Strategy) %>%
+   summarise(Value = mean(Value)/mean(avg_reopt) - 1) %>%
+   ggplot() +
+   aes(x = Customers, y =  Value, group = Strategy, 
+       linetype = Strategy, shape = Strategy) +
+   geom_line(size = 0.5) + geom_point(size = 2) +
+   labs(x = 'Number of Customers', y = 'Cost (% Above Reoptimization)') + 
+   expand_limits(y=0) +
+   theme(aspect.ratio = 0.75) +
+   scale_y_continuous(labels = scales::percent) +
+   scale_fill_grey(start = 0.3)
+ggsave(paste(outpath, 'rel_cost_CLOSED_line.png', sep=''))
+
+# Relative to Reoptimization -- BAR
+reopt <- sims %>%
+   filter(Scenario == "Baseline",
+          Metric == 'Total Cost',
+          Strategy == 'Reoptimization') %>%
+   group_by(Customers) %>%
+   summarise(avg_reopt = mean(Value))
+
+sims %>%
+   filter(Scenario == "Baseline",
+          Metric == 'Total Cost',
+          Strategy %in% c('AO','FO','AOC','FOC')) %>%
+   merge(reopt) %>%
+   mutate(Customers= factor(Customers)) %>%
+   group_by(Customers, Strategy) %>%
+   summarise(Value = mean(Value)/mean(avg_reopt) - 1) %>%
+   ggplot() +
+   aes(x = Customers, y =  Value, fill = Strategy) +
+   geom_bar(stat = 'identity', position = 'dodge') +
+   labs(x = 'Number of Customers', y = 'Cost (% Above Reoptimization)') + 
+   expand_limits(y=0) +
+   theme(aspect.ratio = 0.75) +
+   scale_y_continuous(labels = scales::percent) +
+   scale_fill_grey(start = 0.3)
+ggsave(paste(outpath, 'rel_cost_CLOSED_bar.png', sep=''))
+
+
+
+
+###################### OLD (BEFORE 2021) #############################
 
 #---------- Scenario Comparisons ----------#
 
