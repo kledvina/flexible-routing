@@ -12,7 +12,7 @@ theme_set(theme_bw())
 theme_set(theme_bw(base_size = 11))
 
 setwd("~/Documents/flexible-routing") # Set to file directory
-outpath <- "figures/" # Set to relative location of folder for figures
+outpath <- "C:/Users/hanzh/Documents/GitHub/flexible-routing/figures/" # Set to relative location of folder for figures
 num_sims <- 6000 # As set in Python simulation code
 
 
@@ -28,7 +28,7 @@ num_sims <- 6000 # As set in Python simulation code
 #   sims <- rbind(sims, df)
 #}
 
-sims = read_xlsx('output/results_2021-08-31_16-24-47.xlsx', sheet=1)
+sims = read_xlsx('C:/Users/hanzh/Documents/GitHub/flexible-routing/output/results_2021-08-31_16-24-47.xlsx', sheet=1)
 colnames(sims) = c('ID','Scenario','Customers','Strategy','Metric','Value')
 
 # Rename scenarios
@@ -45,13 +45,13 @@ sims[(sims$Scenario == 'baseline'),]$Scenario = 'Baseline'
 # Rename and reorder routing strategies
 sims[(sims$Strategy == 'dedicated'),]$Strategy = 'Dedicated'
 sims[(sims$Strategy == 'overlapped'),]$Strategy = 'AO'
-sims[(sims$Strategy == 'overlapped closed'),]$Strategy = 'AOC'
+sims[(sims$Strategy == 'overlapped closed'),]$Strategy = 'RAO'
 sims[(sims$Strategy == 'reoptimization'),]$Strategy = 'Reoptimization'
 sims[(sims$Strategy == 'fully flexible'),]$Strategy = 'FO'
-sims[(sims$Strategy == 'fully flexible closed'),]$Strategy = 'FOC'
+sims[(sims$Strategy == 'fully flexible closed'),]$Strategy = 'RFO'
 
 sims$Strategy = factor(sims$Strategy,
-                       levels = c('Dedicated', 'AO', 'FO', 'AOC', 'FOC', 'Reoptimization'))
+                       levels = c('Dedicated', 'AO', 'FO', 'RAO', 'RFO', 'Reoptimization'))
 
 # Rename metrics
 sims[(sims$Metric == 'total cost'),]$Metric = 'Total Cost'
@@ -232,7 +232,7 @@ sims %>%
 sims %>%
    filter(Scenario == 'Baseline',
           Metric == 'Total Cost',
-          Strategy %in% c('Dedicated','AO','AOC','FO','FOC','Reoptimization')) %>%
+          Strategy %in% c('Dedicated','AO','RAO','FO','RFO','Reoptimization')) %>%
    mutate(Customers= factor(Customers)) %>%
    group_by(Customers, Strategy) %>%
    summarise(Value = mean(Value)) %>%
@@ -258,7 +258,7 @@ reopt <- sims %>%
 sims %>%
    filter(Scenario == "Baseline",
           Metric == 'Total Cost',
-          Strategy %in% c('AO','FO','AOC','FOC')) %>%
+          Strategy %in% c('AO','FO','RAO','RFO')) %>%
    merge(reopt) %>%
    mutate(Customers= factor(Customers)) %>%
    group_by(Customers, Strategy) %>%
@@ -285,7 +285,7 @@ reopt <- sims %>%
 sims %>%
    filter(Scenario == "Baseline",
           Metric == 'Total Cost',
-          Strategy %in% c('AO','FO','AOC','FOC')) %>%
+          Strategy %in% c('AO','FO','RAO','RFO')) %>%
    merge(reopt) %>%
    mutate(Customers= factor(Customers)) %>%
    group_by(Customers, Strategy) %>%
