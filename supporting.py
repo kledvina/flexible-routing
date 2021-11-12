@@ -152,11 +152,13 @@ def get_total_cost(inst, segment):
 #---------------------------------------------------------------------------------
 
 def optimize(inst, capacity):
+    """Note: This function is largely from the Google OR-Tools tutorial."""
+
     def create_data_model(inst, capacity):
         data = {}
         data['distance_matrix'] = inst.distances
         data['demands'] = inst.demands
-        data['vehicle_capacities'] = [capacity] * inst.size
+        data['vehicle_capacities'] = [capacity]*inst.size
         data['num_vehicles'] = sum(inst.demands)
         data['depot'] = 0
         return data
@@ -181,13 +183,14 @@ def optimize(inst, capacity):
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
         return data['distance_matrix'][from_node][to_node]
-
+    
     def demand_callback(from_index):
         """Returns the demand of the node."""
         # Convert from routing variable Index to demands NodeIndex.
         from_node = manager.IndexToNode(from_index)
         return data['demands'][from_node]
-
+    
+    
     # --- RUN PROGRAM ---
 
     # Zero cost if no demands
@@ -196,10 +199,10 @@ def optimize(inst, capacity):
 
     # Set up data model
     data = create_data_model(inst, capacity)
-
+    
     # Create the routing index manager
     manager = pywrapcp.RoutingIndexManager(len(data['distance_matrix']), data['num_vehicles'], data['depot'])
-
+    
     # Create routing model
     routing = pywrapcp.RoutingModel(manager)
 
@@ -227,27 +230,27 @@ def optimize(inst, capacity):
     solution = routing.SolveWithParameters(search_parameters)
     all_routes = get_routes(solution, routing, manager)
     nonempty_routes = [route for route in all_routes if not all(i == 0 for i in route)]
-
+    
     # Remove the depot from the optimal routes
     parsed_routes = [route[1:-1] for route in nonempty_routes]
-
+    
     return parsed_routes
-
-
-#---------------------------------------------------------------------------------
-
+    
 def solve_SDVRP(inst, capacity):
     """Creates equivalent demand/location instance with unit demand and solves the VRP with splittable demands"""
     # Create equivalent instance with unit demand customers
-    split_xlocs = [[inst.xlocs[0]]] + [[inst.xlocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
+    depot_x = inst.xlocs[0]
+    depot_y = inst.ylocs[0]
+    
+    split_xlocs = [[depot_x]] + [[inst.xlocs[i]]*inst.demands[i] for i in range(1,len(inst.demands))]
     split_xlocs = [v for sublist in split_xlocs for v in sublist]
 
-    split_ylocs = [[inst.xlocs[0]]] + [[inst.ylocs[i]] * inst.demands[i] for i in range(1, len(inst.demands))]
+    split_ylocs = [[depot_y]] + [[inst.ylocs[i]]*inst.demands[i] for i in range(1,len(inst.demands))]
     split_ylocs = [v for sublist in split_ylocs for v in sublist]
 
-    split_demands = [[0]] + [[1] * inst.demands[i] for i in range(1, len(inst.demands))]
+    split_demands = [[0]] + [[1]*inst.demands[i] for i in range(1,len(inst.demands))]
     split_demands = [v for sublist in split_demands for v in sublist]
-
+    
     split_inst = Instance(split_xlocs, split_ylocs, split_demands, solve_TSP=False)
 
     # Solve VRP with unit demand customers
@@ -255,14 +258,28 @@ def solve_SDVRP(inst, capacity):
 
     # Convert back to non-unit demand problem
     # to get SDVRP solution for original instance
-    ids = [[i] * inst.demands[i] for i in range(1, len(inst.demands))]
+    ids = [[i]*inst.demands[i] for i in range(1,len(inst.demands))]
     ids = [v for sublist in ids for v in sublist]
     if ids == []:
-        return [[]]  # No routes
+        return [[]] # No routes
     else:
-        sdvrp = [[ids[c - 1] for c in route] for route in vrp]
-
+        sdvrp = [[ids[c-1] for c in route] for route in vrp]
+   
     return sdvrp
+
+def solve_VRP(inst, capacity):
+    depot_x = inst.xlocs[0]
+    depot_y = inst.ylocs[0]
+    # Create equivalent instance EXCLUDING customers with zero demand
+    xlocs = [depot_x] + [inst.xlocs[i] for i in range(1,len(inst.demands)) if inst.demands[i] != 0]
+    ylocs = [depot_y] + [inst.ylocs[i] for i in range(1,len(inst.demands)) if inst.demands[i] != 0]
+    dems = [0] + [inst.demands[i]  for i in range(1,len(inst.demands)) if inst.demands[i] != 0]
+    
+    new_inst = Instance(xlocs, ylocs, dems, solve_TSP=False)
+
+    # Solve VRP
+    vrp = optimize(new_inst, capacity)
+    return vrp
 
 
 #---------------------------------------------------------------------------------
@@ -270,12 +287,12 @@ def solve_SDVRP(inst, capacity):
 def get_primary_routes(inst, route_size):
     """Splits customer sequence into segments of 'route_size' number of customers.
     Requires that number of customers is evenly divisible by route_size."""
-
+    
     assert inst.size%route_size == 0, "The number of customers must be evenly divisible by route_size."
-    tour = inst.tour[1:]  # Exclude depot
+    tour =  inst.tour[1:] # Exclude depot
     routes = []
-    for i in range(0, len(tour), route_size):
-        new_route = tour[i:i + route_size]
+    for i in range(0,len(tour),route_size):
+        new_route = tour[i:min(i+route_size,len(tour))]
         routes.append(new_route)
     return routes
 
@@ -290,7 +307,7 @@ def get_extended_routes(inst, route_size, overlap_size):
     tour = inst.tour[1:]
     routes = []
     for i in range(0,len(tour),route_size):
-        new_route = tour[i:i+route_size+overlap_size] # note: for the last route, subsetting ends with final customer
+        new_route = tour[i:min(i+route_size+overlap_size,len(tour))] # note: for the last route, subsetting ends with final customer
         routes.append(new_route)
     return routes
 
@@ -390,7 +407,7 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
         if j == 0:
             workload[j] = primary_demands[j]
         else:
-            workload[j] = max(0, primary_demands[j] - excess[j - 1])
+            workload[j] = max(0, primary_demands[j] - excess[j-1])
 
         if workload[j] == 0:
             excess[j] = excess[j-1] - primary_demands[j]
@@ -398,39 +415,41 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
         else:
             excess[j] = min(capacity * np.ceil(float(workload[j]) / capacity) - workload[j], overlap_demands[j])
             demand_filled[j] = workload[j] + excess[j]
-        remaining_surplus = excess[j]
-  
+        
+        remaining_surplus = 0
+        if j == 0:
+            first[j] = primary_routes[0][0]
+        else:
+            remaining_surplus = excess[j-1]
         i = 0
         while remaining_surplus > 0:
-            if i < len(overlapped_segments[j]):
+            remaining_surplus -= inst.demands[primary_routes[j][i]]
+            if remaining_surplus < 0:
+                first[j] = primary_routes[j][i]
+            elif remaining_surplus == 0 and i < len(primary_routes[j]) - 1:
+                first[j] = primary_routes[j][i+1]
+            elif i == len(primary_routes[j]) - 1:
+                first[j] = 0
+                last[j] = 0
+                break
+            i += 1    
+        
+        if j < len(primary_routes) - 1:
+            remaining_surplus = excess[j]
+            i = 0
+            while remaining_surplus > 0:
                 # fill demand of next shared customer
                 # override default first and last customer if appropriate
                 remaining_surplus -= inst.demands[overlapped_segments[j][i]]
-
-                if remaining_surplus == 0:
+                 
+                if remaining_surplus <= 0:
                     # set last customer
                     last[j] = overlapped_segments[j][i]
-
-                    # set first customer for next route
-                    if j < len(primary_routes) - 1: # exclude the last vehicle
-                        if i >= len(primary_routes[j]) - 1:
-                            # next vehicle does not need to leave depot
-                            first[j + 1] = 0  # next vehicle does not need to leave depot
-                        else:
-                            #
-                            first[j + 1] = primary_routes[j + 1][i + 1]
-
-                elif remaining_surplus < 0:
-                    # vehicles will split this customer
+                elif remaining_surplus > 0 and i == len(overlapped_segments[j]) - 1:
                     last[j] = overlapped_segments[j][i]
-                    if j < len(primary_routes) - 1:
-                        if i > len(primary_routes[j]) - 1:
-                            # next vehicle does not need to leave depot
-                            first[j + 1] = 0  # next vehicle does not need to leave depot
-                        else:
-                            first[j + 1] = overlapped_segments[j][i]  
-            i += 1
-        
+                    break
+                i += 1
+    
     # Determine realized routes based on updated first and last customers
     realized_routes = []
     for j in range(len(primary_routes)):
@@ -469,7 +488,7 @@ def implement_k_overlapped_alg_closed(demand_instance, primary_routes, extended_
     primary_routes_to_rotate = primary_routes
     extended_routes_to_rotate = extended_routes
 
-    # Loop over all customers
+    # Loop over all vehicles
     for c in range(len(primary_routes)-1):
 
         # Rotate primary and extended routes
@@ -529,16 +548,11 @@ def create_instances(scenario, num_cust, cust_sims, dem_sims):
 
     def update_demands(inst, scenario):
         # Creates copy of instance with updated demands depending on scenario
-        if scenario == 'stochastic_customers':
-            # Equal probability of selecting 0 or 8
-            new_dems = list(np.random.choice([0, 8], num_cust))
-        elif scenario == 'binomial':
-            # Binomial(8,0.5) distribution
-            new_dems = list(np.random.binomial(8, 0.5, num_cust))
+        if scenario in ['baseline']:
+            new_dems = list(np.random.randint(0, 8, num_cust))  # Uniformly distributed between 0 and 8
         else:
-            # Uniformly distributed between 0 and 8
-            new_dems = list(np.random.randint(0, 8, num_cust))
-
+            raise ValueError('Scenario is undefined. Use \"baseline\" or define a new scenario in the update_demands function.')
+            
         new_dems = list(np.append([0], new_dems))  # include depot in customer demands
         new_inst = Instance(inst.xlocs, inst.ylocs, new_dems, solve_TSP=False)
         new_inst.tour = inst.tour
