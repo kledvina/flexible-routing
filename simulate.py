@@ -1,12 +1,13 @@
 import pandas as pd
 import time
 from supporting import *
+from copy import deepcopy
 
 # GLOBAL VARIABLES
 field_width = 100 # Customer location has x-coordinate in (0, field_width)
 field_height = 100 # Customer location has y-coordinate in (0, field_height)
-depot_x = 50 # Depot x-coordinate
-depot_y = 50 # Depot y-coordinate
+#depot_x = 50 # Depot x-coordinate
+#depot_y = 50 # Depot y-coordinate
 
 
 #---------------------------------------------------------------------------------
@@ -27,7 +28,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
 
     # Start timers
     start = time.time()
-    pt, dt, ot, ft, rt, st = 0, 0, 0, 0, 0, 0
+    pt, dt, ot, ct, ft, fct, rt, st = 0, 0, 0, 0, 0, 0, 0, 0
 
     # Create timestamp for backup outputs
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
@@ -73,10 +74,12 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
             for j in range(dem_sims):
 
                 # Get instance from array
-                inst = instances[i][j]
+                inst_copy = deepcopy(instances[i][j])
+                
 
                 try:
                     # Solve dedicated routing
+                    inst = deepcopy(inst_copy)
                     new_dt = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
                     segments = create_full_trips(inst, primary_routes, capacity)
@@ -85,6 +88,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     dt += time.time() - new_dt
 
                     # Solve overlapped routing
+                    inst = deepcopy(inst_copy)
                     new_ot = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
                     extended_routes = get_extended_routes(inst, route_size, overlap_size)
@@ -92,15 +96,39 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     new_rows = create_report(inst, scenario, 'overlapped', segments)
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     ot += time.time() - new_ot
-
+                    
+                    
                     # Solve fully flexible routing
+                    inst = deepcopy(inst_copy)
                     new_ft = time.time()
                     segments = create_full_trips(inst, [inst.tour[1:]], capacity)
                     new_rows = create_report(inst, scenario, 'fully flexible', segments)
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     ft += time.time() - new_ft
+                    
+                    # Solve overlapped routing (closed)
+                    inst = deepcopy(inst_copy)
+                    new_ct = time.time()
+                    primary_routes = get_primary_routes(inst, route_size)
+                    extended_routes = get_extended_routes(inst, route_size, overlap_size)
+                    segments = implement_k_overlapped_alg_closed(inst, primary_routes, extended_routes, capacity, route_size, overlap_size)
+                    new_rows = create_report(inst, scenario, 'overlapped closed', segments)
+                    sim_results = sim_results.append(new_rows, ignore_index=True)
+                    ct += time.time() - new_ct
+
+                    
+                    # Solve fully flexible routing (closed)
+                    inst = deepcopy(inst_copy)
+                    new_fct = time.time()
+                    primary_routes = get_primary_routes(inst, route_size)
+                    extended_routes = get_extended_routes(inst, route_size, inst.size)
+                    segments = implement_k_overlapped_alg_closed(inst, primary_routes, extended_routes, capacity, route_size, inst.size)
+                    new_rows = create_report(inst, scenario, 'fully flexible closed', segments)
+                    sim_results = sim_results.append(new_rows, ignore_index=True)
+                    fct += time.time() - new_fct
 
                     # Solve reoptimization
+                    inst = deepcopy(inst_copy)
                     new_rt = time.time()
                     segments = solve_SDVRP(inst, capacity)
                     new_rows = create_report(inst, scenario, 'reoptimization', segments)
@@ -132,7 +160,9 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
     print('Setup: {:.2f} min'.format(pt/60))
     print('Dedicated: {:.2f} min'.format(dt/60))
     print('Overlapped: {:.2f} min'.format(ot/60))
+    print('Overlapped Closed: {:.2f} min'.format(ct/60))
     print('Full Flex.: {:.2f} min'.format(ft/60))
+    print('Full Flex. Closed: {:.2f} min'.format(fct/60))
     print('Reoptimization: {:.2f} min'.format(rt/60))
     print('Saving: {:.2f} min'.format(st/60))
 
