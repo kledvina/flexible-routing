@@ -96,9 +96,7 @@ You can now run *simulate.py* with your new scenario.
 
 ## Contributors
 
-**Code Author:** Kirby Ledvina, MIT Data Science Lab, kirby.ledvina@gmail.com
-
-**Collaborators**
+- Kirby Ledvina, MIT Data Science Lab, kirby.ledvina@gmail.com
 - Hanzhang Qin, MIT Data Science Lab, hqin@mit.edu
 - Prof. David Simchi-Levi (Advisor), MIT Data Science Lab, dslevi@mit.edu
 - Prof. Yehua Wei, Duke Fuqua School of Business, yehua.wei@duke.edu
