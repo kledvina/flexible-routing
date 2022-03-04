@@ -1,4 +1,4 @@
-Update 2022-March: rotational overlapping strategies implemented; can be regarded as a computationally improved version of the original overlapping strategies, inspird from close chains.
+Update 2021-September: rotational overlapping strategies implemented; can be regarded as a computationally improved version of the original overlapping strategies, inspird from close chains.
 
 # flexible-routing
 The flexible-routing repository contains simulation code and output files to computationally assess the costs of a vehicle routing strategy with fixed routes and customer sharing. This work improves on the simulation study in the working paper by [Ledvina et al. (2020)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3656374) and serves as supplemental files for Kirby Ledvina's [master's thesis](https://www.dropbox.com/s/0d9b686bhkjn1k2/Ledvina_SM_CEE_2021_signed.pdf?dl=0) in MIT's Department of Civil and Environmental Engineering.
