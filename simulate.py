@@ -87,7 +87,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     dt += time.time() - new_dt
 
-                    # Solve overlapped routing
+                    # Solve k-overlapped routing
                     inst = deepcopy(inst_copy)
                     new_ot = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
@@ -98,7 +98,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     ot += time.time() - new_ot
                     
                     
-                    # Solve fully flexible routing
+                    # Solve full overlapped routing
                     inst = deepcopy(inst_copy)
                     new_ft = time.time()
                     segments = create_full_trips(inst, [inst.tour[1:]], capacity)
@@ -106,7 +106,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     sim_results = sim_results.append(new_rows, ignore_index=True)
                     ft += time.time() - new_ft
                     
-                    # Solve overlapped routing (closed)
+                    # Solve rotational k-overlapped routing (inspired by closed chains)
                     inst = deepcopy(inst_copy)
                     new_ct = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
@@ -117,7 +117,7 @@ def simulate(scenario, problem_sizes, capacity, route_size, overlap_size, cust_s
                     ct += time.time() - new_ct
 
                     
-                    # Solve fully flexible routing (closed)
+                    # Solve rotational full overlapped routing
                     inst = deepcopy(inst_copy)
                     new_fct = time.time()
                     primary_routes = get_primary_routes(inst, route_size)
