@@ -472,7 +472,7 @@ def implement_k_overlapped_alg(inst, primary_routes, extended_routes, capacity, 
 
 
 def implement_k_overlapped_alg_closed(demand_instance, primary_routes, extended_routes, capacity, route_size, overlap_size):
-    """Closed chain implemetation for flexible routing"""
+    """rotational k-overlapped strategy implemetation for flexible routing (inspired by closed chains)"""
 
     # Get customer instance
     inst = demand_instance
