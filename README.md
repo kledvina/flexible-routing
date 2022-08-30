@@ -1,3 +1,5 @@
+June 2022 Update: the official paper is published! If you find the code useful in your research work, please cite: Ledvina, Kirby, et al. "A new approach for vehicle routing with stochastic demand: Combining route assignment with process flexibility." Operations Research (2022).  https://pubsonline.informs.org/doi/abs/10.1287/opre.2022.2304
+
 September 2021 Update: rotational overlapping strategies implemented; it can be regarded as an enhanced version of the original overlapping strategies, inspired by the close chains in process flexibility.
 
 # flexible-routing
